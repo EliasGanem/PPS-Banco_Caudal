@@ -3,7 +3,6 @@ import usb.util
 import sys
 
 # --- CONFIGURACIÓN ---
-# Reemplazá con los valores que obtuviste de lsusb
 ID_VENDOR = 0x04D8  
 ID_PRODUCT = 0x0010
 
@@ -14,24 +13,44 @@ if dev is None:
     print("Dispositivo no encontrado. ¿Está conectado?")
     sys.exit(1)
 
-    # En Windows, a veces es necesario hacer un "detach" si el driver está ocupado
+# --- INICIALIZACIÓN CRÍTICA ---
+
+# 1. Resetear el dispositivo (limpia estados de transferencias previas)
+dev.reset()
+
+# 2. Liberar driver del kernel (Solo necesario en Linux, en Windows se ignora)
+try:
     if dev.is_kernel_driver_active(0):
         dev.detach_kernel_driver(0)
+except (NotImplementedError, usb.core.USBError):
+    pass # Windows no suele implementar esto o no es necesario con WinUSB
 
-# Configurar el dispositivo
-dev.set_configuration()
+# --- REEMPLAZO DE LA INICIALIZACIÓN ---
 
-# 1. Reclamar la interfaz (Interface 0 en tu caso)
+# 1. Resetear el bus
+dev.reset()
+
+# 2. Forzar la configuración pasándole el valor 1 (índice de configuración)
+# A veces pasarlo explícitamente ayuda a que el driver no lo ignore
+dev.set_configuration(1)
+
+# 3. TRUCO: Reclamar la interfaz antes de intentar cualquier set_interface
 usb.util.claim_interface(dev, 0)
 
-# 2. Forzar el SET INTERFACE (esto genera el paquete que falta en tu captura)
-dev.set_interface_altsetting(interface = 0, alternate_setting = 0)
+# 4. En lugar de set_interface_altsetting, intentamos enviar un comando de control
+# que simule el comportamiento del lab
+try:
+    # Esto es lo que hace set_interface_altsetting a nivel de protocolo (bmRequestType=0x01, bRequest=0x0b)
+    dev.ctrl_transfer(0x01, 0x0B, 0, 0, None)
+    print("Comando SET_INTERFACE forzado manualmente")
+except Exception as e:
+    print(f"Error al forzar: {e}")
 
-# Definir los EndPoints (EP1 en el código del PIC)
-# 0x01 es el EP1 OUT (PC -> PIC)
-# 0x81 es el EP1 IN (PIC -> PC)
+# --- RESTO DEL CÓDIGO (Endpoints y Funciones) ---
 endpoint_out = 0x01
 endpoint_in = 0x81
+
+# ... (tu función probar_comunicacion y el bloque __main__ se mantienen igual)
 
 def probar_comunicacion(modo, param):
     try:
