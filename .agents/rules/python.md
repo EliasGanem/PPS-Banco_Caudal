@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: manual
 ---
 
 # Estilo y Legibilidad (El "Pythonic Way")
