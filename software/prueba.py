@@ -1,6 +1,7 @@
 import usb.core
 import usb.util
 import sys
+import time
 
 # --- CONFIGURACIÓN ---
 ID_VENDOR = 0x04D8  
@@ -77,4 +78,4 @@ def probar_comunicacion(modo, param):
 
 if __name__ == "__main__":
     # Probar Modo 15 (Leer todo) y Param 4 (Activar Vaciado/Recirculado)
-    probar_comunicacion(3, 0)
+    probar_comunicacion(3, 2)
