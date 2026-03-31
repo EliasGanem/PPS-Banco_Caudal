@@ -41,8 +41,8 @@ Logica de aplicación
 El terminal D2 debe estar activo siempre para que el selector de dispositivo RS232 funcione. 
 El pic espera recibir un byte de la PC que representa el modo de opecion. En base a eso realiza lo siguiente:
 - El modo 0x00 es un modo de arranque inicial, en este todas las salidas debes estar desactivadas excepto la D2.
-- Si recibe el modo 0x01 debe activar/desactivar el ensayo. Activar el ensayo es poner E1 en alto, desactivarlo es poner E1 en bajo.
-- Si recibe el modo 0x02 debe activar/desactivar el vaciado y la recirculación. Activar el vaciado y la recirculación que es poner E0 y E2 en alto, desactivarlo es poner E0 y E2 en bajo.
+- Si recibe el modo 0x01 debe activar/desactivar el ensayo. Activar el ensayo es poner E1 en alto, desactivarlo es poner E1 en bajo. En ambos casos E0 y E2 deben estar en 0.
+- Si recibe el modo 0x02 debe activar/desactivar el vaciado y la recirculación. Activar el vaciado y la recirculación que es poner E0 y E2 en alto, desactivarlo es poner E0 y E2 en bajo. En ambos casos E1 debe estar en 0.
 - Si recibe el modo 0x03 debe leer el puerto RS232 de la balanza para ello debe poner en bajo D3 antes de realizar la lectura. Luego debe actualizar el peso actual en la trama de 8 bytes que debe enviar por usb com a la PC.
 - Si recibe el modo 0x04 debe leer el puerto RS232 del reloj, para lo que debe poner en alto D3 y luego enviar el valor 100 por RS232 lo que solicita que el reloj le envie los datos. Luego debe leer los dos bytes y actualizarlos en la trama de 8 bytes que envia a la PC por usb com.
 - Si recibe el modo 0x05 debe hacer lo mismo que hace en el modo 0x03 y en el modo 0x04, es decir, debe leer el puerto RS232 de la balanza y el puerto RS232 del reloj y actualizar los 8 bytes de la trama que envia a la PC por usb com.
