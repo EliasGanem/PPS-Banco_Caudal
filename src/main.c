@@ -1,41 +1,95 @@
-#include "stm32f1xx_hal.h"
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "usb_device.h"
 
-// Definiciones para el LED
-#define LED_PIN GPIO_PIN_13
-#define LED_PORT GPIOC
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "usbd_cdc_if.h"
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+
+/* Private define ------------------------------------------------------------*/
+
+/* Private macro -------------------------------------------------------------*/
+
+/* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
 
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 
+/* Private user code ---------------------------------------------------------*/
+
+/**
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void) {
-  // 1. Inicializar HAL y Relojes (FUNDAMENTAL: Primero el Clock)
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+   */
   HAL_Init();
+
+  /* Configure the system clock */
   SystemClock_Config();
 
-  // 2. Inicializar Periféricos
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USB_DEVICE_Init();
   MX_USART1_UART_Init();
 
-  uint8_t rxData;
+  // Read buffer
+  uint8_t rxDataUART;
+  uint8_t rxDataUSB[8];
+  memset(rxDataUSB, 0, 8);
 
   while (1) {
-    // Parpadeo del LED (Toggle cada 500ms)
-    HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
 
-    /* IMPORTANTE: Para que la UART "siga funcionando" mientras el LED parpadea,
-       no podemos usar HAL_MAX_DELAY. Usamos un timeout corto (ej. 500ms).
-       Esto sincroniza el parpadeo con la espera de datos.
-    */
-    if (HAL_UART_Receive(&huart1, &rxData, 1, 500) == HAL_OK) {
+    // Echo data UART
+    if (HAL_UART_Receive(&huart1, &rxDataUART, 1, 10) == HAL_OK) {
       // Si recibimos algo, hacemos el eco inmediatamente
-      HAL_UART_Transmit(&huart1, &rxData, 1, 10);
+      HAL_UART_Transmit(&huart1, &rxDataUART, 1, 10);
+    }
+
+    // Echo data USB
+    uint16_t bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
+    if (bytesAvailable > 0) {
+      uint16_t bytesToRead = bytesAvailable >= 8 ? 8 : bytesAvailable;
+      if (CDC_ReadRxBuffer_FS(rxDataUSB, bytesToRead) == USB_CDC_RX_BUFFER_OK) {
+        while (CDC_Transmit_FS(rxDataUSB, bytesToRead) == USBD_BUSY)
+          ;
+      }
     }
   }
 }
 
+/**
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -111,13 +165,58 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
   }
 }
 
+/**
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void) {
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  GPIO_InitStruct.Pin = LED_PIN;
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_PORT, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 }
 
-void SysTick_Handler(void) { HAL_IncTick(); }
+/**
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1) {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef USE_FULL_ASSERT
+/**
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
+void assert_failed(uint8_t *file, uint32_t line) {
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
