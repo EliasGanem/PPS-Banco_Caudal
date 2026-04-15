@@ -62,16 +62,23 @@ int main(void) {
   MX_USART1_UART_Init();
 
   // Read buffer
-  uint8_t rxDataUART;
+  uint8_t rxDataUART[8];
   uint8_t rxDataUSB[8];
   memset(rxDataUSB, 0, 8);
+  memset(rxDataUART, 0, 8);
 
   while (1) {
 
     // Echo data UART
-    if (HAL_UART_Receive(&huart1, &rxDataUART, 1, 10) == HAL_OK) {
-      // Si recibimos algo, hacemos el eco inmediatamente
-      HAL_UART_Transmit(&huart1, &rxDataUART, 1, 10);
+    if (HAL_UART_Receive(&huart1, &rxDataUART[0], 1, 10) == HAL_OK) {
+      uint16_t bytesLeidos = 1;
+      while (bytesLeidos < 8 &&
+             HAL_UART_Receive(&huart1, &rxDataUART[bytesLeidos], 1, 2) ==
+                 HAL_OK) {
+        bytesLeidos++;
+      }
+      while (CDC_Transmit_FS(rxDataUART, bytesLeidos) == USBD_BUSY)
+        ;
     }
 
     // Echo data USB
@@ -79,8 +86,7 @@ int main(void) {
     if (bytesAvailable > 0) {
       uint16_t bytesToRead = bytesAvailable >= 8 ? 8 : bytesAvailable;
       if (CDC_ReadRxBuffer_FS(rxDataUSB, bytesToRead) == USB_CDC_RX_BUFFER_OK) {
-        while (CDC_Transmit_FS(rxDataUSB, bytesToRead) == USBD_BUSY)
-          ;
+        HAL_UART_Transmit(&huart1, &rxDataUSB, bytesToRead, 10);
       }
     }
   }
