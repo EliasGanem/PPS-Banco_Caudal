@@ -86,7 +86,7 @@ int main(void) {
     if (bytesAvailable > 0) {
       uint16_t bytesToRead = bytesAvailable >= 8 ? 8 : bytesAvailable;
       if (CDC_ReadRxBuffer_FS(rxDataUSB, bytesToRead) == USB_CDC_RX_BUFFER_OK) {
-        HAL_UART_Transmit(&huart1, &rxDataUSB, bytesToRead, 10);
+        HAL_UART_Transmit(&huart1, &rxDataUSB, bytesToRead, 100);
       }
     }
   }
@@ -141,7 +141,7 @@ void SystemClock_Config(void) {
 
 static void MX_USART1_UART_Init(void) {
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600; // Asegúrate que Termite esté en 9600
+  huart1.Init.BaudRate = 1200; // Asegúrate que Termite esté en 9600
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
