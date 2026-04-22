@@ -20,6 +20,7 @@ class ComunicacionSerie:
         self.puerto_serial: Optional[serial.Serial] = None
         self._conectado = False
         self._lock = threading.Lock()
+        self._lock_com = threading.Lock()
 
     def listar_puertos(self) -> List[str]:
         """Devuelve una lista con los nombres de los puertos COM disponibles."""
@@ -92,19 +93,21 @@ class ComunicacionSerie:
                     if callback: 
                         callback(comando, "")
                     return
+                puerto = self.puerto_serial
                 
+            with self._lock_com:
                 try:
                     # Enviar comando terminado en null character
                     trama = comando.encode('ascii') + b'\x00'
-                    self.puerto_serial.write(trama)
-                    self.puerto_serial.flush()
+                    puerto.write(trama)
+                    puerto.flush()
                     
                     respuesta_str = ""
                     if espera_respuesta:
                         # Leer hasta encontrar un nulo
                         respuesta = b""
                         while True:
-                            char = self.puerto_serial.read(1)
+                            char = puerto.read(1)
                             if not char or char == b'\x00':
                                 break
                             respuesta += char

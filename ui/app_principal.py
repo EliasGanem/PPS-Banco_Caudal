@@ -47,11 +47,14 @@ class AppPrincipal(ctk.CTk):
         self.cmb_camaras = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], command=self.cambiar_camara)
         self.cmb_camaras.grid(row=1, column=1, padx=10, pady=5)
         
+        self.btn_refrescar = ctk.CTkButton(self.frame_config, text="Actualizar Dispositivos", command=self.refrescar_hardware, width=150)
+        self.btn_refrescar.grid(row=1, column=2, padx=10, pady=5)
+        
         self.ind_banco = IndicadorConexion(self.frame_config, "Conexión Banco")
-        self.ind_banco.grid(row=1, column=2, padx=20, pady=5)
+        self.ind_banco.grid(row=1, column=3, padx=20, pady=5)
         
         self.ind_camara = IndicadorConexion(self.frame_config, "Conexión Cámara")
-        self.ind_camara.grid(row=1, column=3, padx=20, pady=5)
+        self.ind_camara.grid(row=1, column=4, padx=20, pady=5)
 
         # --- Contenedor Medio ---
         self.frame_medio = ctk.CTkFrame(self, fg_color="transparent")
@@ -147,6 +150,18 @@ class AppPrincipal(ctk.CTk):
             self.cmb_puertos.configure(values=["Ninguno"])
             self.cmb_puertos.set("Ninguno")
 
+    def refrescar_hardware(self):
+        logger.info("Refrescando lista de dispositivos...")
+        # Desconectar actuales si los hubiera para evitar colisiones
+        self.driver_serie.desconectar()
+        self.driver_camara.desconectar()
+        
+        self.cmb_puertos.set("Buscando...")
+        self.cmb_camaras.set("Buscando...")
+        self.update_idletasks()
+        
+        self.inicializar_hardware()
+
     def cambiar_puerto_serie(self, puerto: str):
         if puerto and puerto != "Ninguno" and puerto != "Buscando...":
             self.driver_serie.conectar(puerto)
@@ -170,6 +185,9 @@ class AppPrincipal(ctk.CTk):
 
     def _procesar_respuesta_ui(self, comando: str, respuesta: str):
         if not respuesta:
+            # Si no hay respuesta (timeout o desconexión), liberamos estados
+            if hasattr(self, '_esperando_peso_ini'): self._esperando_peso_ini = False
+            if hasattr(self, '_esperando_peso_fin'): self._esperando_peso_fin = False
             return
             
         try:
