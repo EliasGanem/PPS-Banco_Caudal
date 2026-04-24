@@ -13,6 +13,8 @@ struct banco_caudal_s {
     hal_comm_t* comm;
     estado_ensayo_t estado;
     uint32_t start_tick;
+    uint32_t last_tick;
+    uint32_t simulated_weight_g;
     uint8_t rx_buffer[64];
     uint16_t rx_index;
 };
@@ -29,6 +31,8 @@ void BancoCaudal_Init(banco_caudal_t* self, hal_comm_t* comm) {
     self->comm = comm;
     self->estado = ESTADO_ESPERA;
     self->start_tick = 0;
+    self->last_tick = HAL_GetTick();
+    self->simulated_weight_g = 50000; // Inicia en 50kg (50000g)
     self->rx_index = 0;
     memset(self->rx_buffer, 0, sizeof(self->rx_buffer));
 }
@@ -50,9 +54,9 @@ static void BancoCaudal_ProcesarComando(banco_caudal_t* self, const char* cmd) {
     uint32_t secs = elapsed_ms / 1000;
     uint32_t ms = elapsed_ms % 1000;
     
-    // Simulación: peso inicial = 100.000, sube 1 kg por segundo + fracción
-    uint32_t weight_int = 100 + secs; 
-    uint32_t weight_frac = ms;        
+    // Obtenemos el peso simulado actual
+    uint32_t weight_int = self->simulated_weight_g / 1000; 
+    uint32_t weight_frac = self->simulated_weight_g % 1000;        
 
     if (strcmp(cmd, "INICIAR ENSAYO") == 0) {
         self->estado = ESTADO_EN_CURSO;
@@ -85,6 +89,15 @@ static void BancoCaudal_ProcesarComando(banco_caudal_t* self, const char* cmd) {
 
 void BancoCaudal_Process(banco_caudal_t* self) {
     if (self == NULL || self->comm == NULL) return;
+
+    // Actualizar simulación de peso
+    uint32_t current_tick = HAL_GetTick();
+    uint32_t delta_ms = current_tick - self->last_tick;
+    self->last_tick = current_tick;
+    
+    if (self->estado == ESTADO_EN_CURSO) {
+        self->simulated_weight_g += delta_ms; // 1g por ms = 1kg por s
+    }
 
     uint8_t temp_buf[16];
     uint16_t bytes_read = 0;
