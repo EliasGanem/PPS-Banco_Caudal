@@ -23,9 +23,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "banco_caudal.h"
+#include "mcu_usb_cdc.h"
 #include "usbd_cdc_if.h"
-#include "app/banco_caudal.h"
-#include "mcu/stm32/mcu_usb_cdc.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,8 +65,8 @@ int main(void) {
   MX_USART1_UART_Init();
 
   // Inicializar arquitectura orientada a objetos (POO) y capas HAL
-  banco_caudal_t* banco = BancoCaudal_GetInstance();
-  hal_comm_t* usb_comm = MCU_USB_CDC_GetInstance();
+  banco_caudal_t *banco = BancoCaudal_GetInstance();
+  hal_comm_t *usb_comm = MCU_USB_CDC_GetInstance();
   BancoCaudal_Init(banco, usb_comm);
 
   while (1) {
