@@ -1,0 +1,40 @@
+Descripcion general del firmware
+Se debe hacer un firmware para un st32f103c8 utilizando FreeRTOS y se lo programa utilizando platformIO con el entorno de VSCode. El firmware debe controlar salidas digitales y comunicarse con:
+- una PC a traves de usb com para enviar y recibir datos.
+- balanza a traves RS232.
+- reloj a traves RS232.
+
+Funcion de cada terminal
+PB5: habilita el funcionamiento del selector de dispositivo RS232 (activo en bajo).
+PB6: selector de dispositivo RS232: en 0 es balanza, en 1 es reloj.
+PB7: activa válvula tanque de recirculación.
+PB8: selector de tanque: en 0 es tanque de pesada, en 1 es tanque de recirculación.
+PB9: activa válvula tanque de pesada.
+PA11: usb D-.
+PA12: usb D+.
+PA9: TX RS232.
+PA10: RX RS232.
+
+Comunicación con la balanza
+La balanza tiene una salida serie RS232 a 1200 baudios, 8 bit de datos, sin paridad y un bit de stop. La balanza envia continuamente un string de 8 caracteres con el siguiente formato: "SPPPPPPC", donde:
+- S = byte status.
+- P = peso en ascii.
+- C = retorno de carro.
+Para que el microcontrolador pueda comunicarse con la balanza los pines PB6 y PB5 deben estar en bajo.
+
+Comunicación con el reloj
+**A definir.**
+
+Funcionamiento
+Cuando se energiza el microcontrolador el estado de arranque seguro, que llamaremos "modo recirculación", es con todas las salidas en bajo excepto por PB8, PB7.
+
+La PC le envia al microcontrolador por usb com un string (cuyo ultimo caracter es el terminador nulo) que indica el modo de operacion. Los string recibidos pueden ser:
+    - "INICIAR ENSAYO": en este caso se debe dar inicio medición de tiempo del reloj y poner en alto PB9 y desactivar PB8 y PB7.
+    - "FINALIZAR ENSAYO": se lee el valor del reloj y vuelve al modo de recirculación. Luego debe enviar por USB COM el valor a la PC.
+    - "MEDICION BALANZA": se lee el valor de la balanza y se envia el valor por USB COM a la PC. 
+    - "MEDICION RELOJ": se lee el valor del recloj y se envia el valor por USB COM a la PC.
+    - "MEDICION COMPLETA": se lee el valor de la balanza y el valor del reloj. Luego se envian los valores por USB COM a la PC.
+
+Los datos se deben enviar a traves de USB COM en el siguiente formato:
+- Cuando se envia el peso de la balanza se lo hace enviando un string de 8 caracteres donde el ultimo es el terminador nulo. Los caracteres enviados son los recibidos del reloj la balanza en el siguiente formato "PPPP.PP", el punto es un caracter.
+- Cuando se envia el valor del reloj se lo hace enviando un string de 9 caracteres donde el ultimo es el terminador nulo. Los caracteres enviados son los recibidos del rejoj, el formato se definirá luego.
