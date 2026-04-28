@@ -24,6 +24,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+#include "app/app_main.h"
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,34 +64,11 @@ int main(void) {
   MX_USB_DEVICE_Init();
   MX_USART1_UART_Init();
 
-  // Read buffer
-  uint8_t rxDataUART[8];
-  uint8_t rxDataUSB[8];
-  memset(rxDataUSB, 0, 8);
-  memset(rxDataUART, 0, 8);
+  app_main_init();
+
+  vTaskStartScheduler();
 
   while (1) {
-
-    // Echo data UART
-    if (HAL_UART_Receive(&huart1, &rxDataUART[0], 1, 10) == HAL_OK) {
-      uint16_t bytesLeidos = 1;
-      while (bytesLeidos < 8 &&
-             HAL_UART_Receive(&huart1, &rxDataUART[bytesLeidos], 1, 2) ==
-                 HAL_OK) {
-        bytesLeidos++;
-      }
-      while (CDC_Transmit_FS(rxDataUART, bytesLeidos) == USBD_BUSY)
-        ;
-    }
-
-    // Echo data USB
-    uint16_t bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-    if (bytesAvailable > 0) {
-      uint16_t bytesToRead = bytesAvailable >= 8 ? 8 : bytesAvailable;
-      if (CDC_ReadRxBuffer_FS(rxDataUSB, bytesToRead) == USB_CDC_RX_BUFFER_OK) {
-        HAL_UART_Transmit(&huart1, &rxDataUSB, bytesToRead, 100);
-      }
-    }
   }
 }
 
