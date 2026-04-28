@@ -1,5 +1,5 @@
 ---
-trigger: manual
+trigger: always_on
 ---
 
 # Buenas Prácticas y Arquitectura de Firmware en C
@@ -71,6 +71,8 @@ Funciones: Prefijo_Sustantivo_Verbo() (Ej: UART_Buffer_Flush).
 
 Macros: Siempre en MAYUSCULAS_CON_SNAKE_CASE.
 
+Utilizar el idioma español.
+
 ## 7. Estructura de Archivos Recomendada
 
 Para mantener el proyecto organizado y facilitar la migración de microcontrolador:
@@ -81,8 +83,6 @@ Para mantener el proyecto organizado y facilitar la migración de microcontrolad
 
   ├── /drivers        # Componentes externos (Sensores, Displays, etc.)
 
-  ├── /hal            # Definiciones de interfaz (I2C.h, GPIO.h - Solo firmas)
-
   ├── /mcu            # CAPA NO PORTABLE
 
   │     ├── /xx1     # Implementación específica para el microcontrolador 1
@@ -92,3 +92,5 @@ Para mantener el proyecto organizado y facilitar la migración de microcontrolad
   ├── /utils          # Librerías generales (Buffer Circular, Matemáticas)
   
   └── main.c          # Punto de entrada (Setup y Loop principal)
+/inc
+ ├──  # donde estan los archivos punto H.

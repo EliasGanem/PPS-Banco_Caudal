@@ -23,7 +23,7 @@ La balanza tiene una salida serie RS232 a 1200 baudios, 8 bit de datos, sin pari
 Para que el microcontrolador pueda comunicarse con la balanza los pines PB6 y PB5 deben estar en bajo.
 
 Comunicación con el reloj
-**A definir.**
+Todavía no esta definida como es esta comunicación, por lo que considerá que en algun momento se incluira.
 
 Funcionamiento
 Cuando se energiza el microcontrolador el estado de arranque seguro, que llamaremos "modo recirculación", es con todas las salidas en bajo excepto por PB8, PB7.
@@ -38,3 +38,10 @@ La PC le envia al microcontrolador por usb com un string (cuyo ultimo caracter e
 Los datos se deben enviar a traves de USB COM en el siguiente formato:
 - Cuando se envia el peso de la balanza se lo hace enviando un string de 8 caracteres donde el ultimo es el terminador nulo. Los caracteres enviados son los recibidos del reloj la balanza en el siguiente formato "PPPP.PP", el punto es un caracter.
 - Cuando se envia el valor del reloj se lo hace enviando un string de 9 caracteres donde el ultimo es el terminador nulo. Los caracteres enviados son los recibidos del rejoj, el formato se definirá luego.
+
+Observaciones:
+- Al cambiar el selector (PB6), el firmware debe limpiar el buffer del UART y esperar a detectar el inicio del frame.
+- Definí las siguientes tareas, podrías definir mas si es necesario, para el sistema operativo:
+    - Tare_USB: Encargada únicamente de recibir comandos de la PC y ponerlos en una "Cola" (Queue).
+    - Tarea_Control: La "máquina de estados". Lee la cola de comandos, mueve los pines (PB7-PB9) y gestiona los tiempos del ensayo.
+    - Tarea_Mux_Serial: La que se encarga de hablar con la balanza/reloj. Debería usar un Mutex para asegurar que nadie mueva los pines del selector (PB5/PB6) mientras se está realizando una lectura.

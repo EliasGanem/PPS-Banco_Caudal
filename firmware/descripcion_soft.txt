@@ -1,0 +1,77 @@
+Descripción del software
+
+Este código se encarga de controlar por USB COM un banco de caudal, que se utiliza para hacer ensayos de calibración de caudalimetros. Para ello recibe y envía información al banco de caudal a traves de USB COM. Además utiliza una camara de fotos a través de usb para tomar imágenes en diferentes momentos.
+
+Descripción de interfaz de usuario
+
+La interfaz de ususario posee un recuadro indicador donde se configura la duración del ensayo tocando e ingresando el valor en segundos.
+
+Por otro lado, tiene los siguientes indicadores numericos: 
+- tiempo de ensayo: donde muestra la duración del ensayo.
+- peso inicial: donde muestra el peso del tanque de pesada al iniciar el ensayo.
+- peso final: donde muestra el peso del tanque de pesada al finalizar el ensayo.
+- peso neto: donde muestra la diferencia entre el peso final y el peso inicial.
+- caudal masico: donde muestra el caudal medido.
+- caudal volumetrico: donde muestra el caudal medido.
+- lectura de la balanza: muestra peso actual del tanque de pesada.
+
+Posee:
+- 6 recuadros donde se colocan las imagenes tomadas en orden cronológico.
+- un indicador de conexión con el banco de caudal.
+- un indicador de conexión con la cámara.
+- un botón para iniciar el ensayo.
+- un botón peso inicial.
+- un botón peso final.
+- un boton calcular caudal. 
+
+Descripción de funcionamiento
+
+La comunicación con el banco de caudal es a través de usb com, se envían comandos y se reciben datos. Tanto los datos como los comandos son cadenas de caracteres, donde el ultimo caracter es el terminador nulo.
+Cuando se inicia el programa se intenta establecer comunicación con el banco de caudal y con la cámara.
+
+Al presionar el boton de "iniciar ensayo" se envia el comando "INICIAR ENSAYO" al banco de caudal. La duración del ensayo se obtiene del valor ingresado por el usuario en el recuadro correspondiente, el valor por defecto de la duración del ensayo es de 10 segundos (este valor debe estar parametrizado para los diseñadores puedas modificarlo en el codigo). Para saber cuanto tiempo transcurrio se envía constantemente el comando MEDICION RELOJ al banco de cauldal, pues luego de que este recibe dicho comando envía el tiempo transcurrido desde que se inicio el ensayo. Se debe comparar el valor recibido con el tiempo de ensayo configurado para determinar si finalizo el ensayo, cuando esto sucede se envía el comando FINALIZAR ENSAYO. Cuando el banco de caudal recibe el comando FINALIZAR ENSAYO envia el tiempo total del ensayo el cual se debe mostrar en el recuadro correspondiente de la interfaz de usuario. 
+
+Al iniciar el ensayo se toma la primera imagen de la camara y las 5 imágenes restantes se toman cada una quinta parte del tiempo de ensayo. Por ejemplo, si el tiempo de ensayo son 25 segundos, las imágenes se tomarán a los 0, 5, 10, 15, 20 y 25 segundos. Estas imagenes se mostraran en orden cronológico en los recuadros correspondientes.
+
+Cuando no se esta ensayando y se presiona el botón "peso inicial" o "peso final" se debe enviar el comando MEDICION BALANZA, luego se espera recibir el valor del peso el cual se debe mostrar en el indicador correspondiente. 
+
+Una vez finalizado el ensayo se debe calcular el caudal a partir de los datos de tiempo final, peso inicial y peso final obtenidos. El calculo y la indicacion se realizan una vez presionado el boton "calcular caudal", solo cuando se haya presionado el boton "peso final".
+
+No se puede presionar "iniciar ensayo" sin antes haber presionado el boton "peso inicial".
+
+Se debe tener un selector de puerto para elegir que camara usar. Este selector debe mostrar todas las camaras disponibles. En caso de no tener una camara conectada el programa seguira funcionando sin tomar las fotos. El indicador de camara conectada debe cumplir su funcion.
+
+Aunque la selección del puerto al que esta conectado el banco de caudal es automatico, debe haber un selector para poder elegir otro puerto com en caso de ser necesario. Y debe mostrar que puerto com esta seleccionado. Es decir, al inicio aparece el puerto com que se determino automaticamente, pero se puede hacer click y se debe desplegar una barra con las distintas opciones de puertos para elegir.
+
+Las imagenes se guardarán en una carpeta llamada ensayos_banco_caudal. Las imagenes corrspondientes a cada ensayo se guardan dentro de otras carpeta cuyo nombre es la fecha y hora del ensayo, y estas estaran dentro de la carpeta ensayo_banco_caudal. El nombre de las fotos sera un nuemero segun el orden cronologico en que se tomaron, la primera será la img_1. Ademas en la carpeta del ensayo debe generarse un archivo .csv con los datos de las mediciones.
+
+Se debe tener un parámetro de densidad que será ingresado por el usuario en la interfaz de usuario, este debe ser mostrado. No se puede iniciar el ensayo a menos que se tenga el haya ingresado el valor de densidad. 
+
+Otras especificaciones
+1- Comunicación usb com 
+    - Parámetros: 9600 baudios, 8 bits de datos, sin paridad y un bit de stop.
+    - Puerto: se elige automaticamente a partir del vendor id y del produc id, los cuales deben estar parametrizados.
+    - Formato de datos recibidos según el comando enviado:
+        - MEDICION BALANZA: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 7 caractes mas el terminador nulo.
+        - MEDICION RELOJ: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 8 caractes mas el terminador nulo.
+        - MEDICION COMPLETA: en este caso se reciben dos string con el mismo formato que los anteriores. Pero primero llega el peso y luego el tiempo.
+    - Formato de los datos enviados: es un string de longitud variable seguido del terminador nulo. 
+        - INICIAR ENSAYO: longitud 15 caracteres mas el terminador nulo.
+        - FINALIZAR ENSAYO: longitud 16 caracteres mas el terminador nulo.
+        - MEDICION BALANZA: longitud 17 caracteres mas el terminador nulo.
+        - MEDICION RELOJ: longitud 16 caracteres mas el terminador nulo.
+        - MEDICION COMPLETA: longitud 17 caracteres mas el terminador nulo.
+
+2- No se debe bloquear la UI: la usb com y la captura de fotos corran en un hilo (thread) separado para que se pueda utilizar la camara, el banco de caudal y el resto del programa de forma simultanea.
+
+3- Libreria para el control de la camára: se debe usar OpenCV (cv2).
+
+4- Polling de MEDICION RELOJ se realiza cada 100 milisegundos.
+
+5- Cálculo de caudal masico: el caudal se calcula: (peso final - peso inicial)/(Tiempo). Debe ser mostrado en el indicador correspondiente una vez presionado el boton calcular caudar. Las unidades en SIMELA serían kg/s.
+
+6- Cálculo de caudal volumetrico: el caudal se calcula: (peso final - peso inicial)/(Tiempo*densidad). Debe ser mostrado en el indicador correspondiente una vez presionado el boton calcular caudar. Las unidades serían m^3/s.
+
+7- Utilizá las unidades del SIMELA.
+
+8- Utilizá la librería CustomTkinter para la interfaz gráfica y threading para que la comunicación serial con el banco y la captura de imágenes con OpenCV no bloqueen la interfaz. Nota los hilos secundarios no deben actualizar la interfaz de ususario.
