@@ -70,13 +70,16 @@ static void app_usb_rx_task(void *pvParameters) {
         // Limpiar buffer
         rx_index = 0;
       } else {
+        /*
         // Ignorar retorno de carro o saltos de línea si no son el terminador
         if (c == '\r' || c == '\n') {
           continue;
         }
+        */
 
         if (rx_index < USB_RX_BUF_SIZE - 1) {
-          rx_buffer[rx_index++] = c;
+          rx_buffer[rx_index] = c;
+          rx_index++;
         } else {
           // Overflow de buffer, descartar todo
           rx_index = 0;
