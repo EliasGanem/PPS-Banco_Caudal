@@ -35,6 +35,8 @@ La PC le envia al microcontrolador por usb un string (cuyo ultimo caracter es el
     - "MEDICION RELOJ": se lee el valor del recloj y se envia el valor por USB COM a la PC.
     - "MEDICION COMPLETA": se lee el valor de la balanza y el valor del reloj. Luego se envian los valores por USB COM a la PC.
 
+NOTA: Cuando se recibe y procesa un comando válido de la PC, el firmware responde realizando un "echo" del mismo comando recibido (incluyendo el terminador) a modo de confirmación/acuse de recibo.
+
 Los datos se deben enviar a traves de USB en el siguiente formato:
 - Cuando se envia el peso de la balanza se lo hace enviando un string de 8 caracteres donde el ultimo es el terminador nulo. Los caracteres que se envian por usb a la PC son los recibidos de la balanza en el siguiente formato "PPPP.PP", el punto es un caracter.
 - Cuando se envia el valor del reloj a la PC, envía los bytes recibidos.

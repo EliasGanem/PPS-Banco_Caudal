@@ -59,11 +59,21 @@ static void app_usb_rx_task(void *pvParameters) {
                 // Enviar comando a la cola de la tarea de control
                 if (cmd != CMD_DESCONOCIDO) {
                     App_Control_SendCmd(cmd);
+
+                    // Hacer un echo del comando recibido para confirmar su recepción
+                    App_USB_SendString((char*)rx_buffer);
+                    uint8_t term = CMD_TERMINATOR;
+                    App_USB_SendBytes(&term, 1);
                 }
 
                 // Limpiar buffer
                 rx_index = 0;
             } else {
+                // Ignorar retorno de carro o saltos de línea si no son el terminador
+                if (c == '\r' || c == '\n') {
+                    continue;
+                }
+                
                 if (rx_index < USB_RX_BUF_SIZE - 1) {
                     rx_buffer[rx_index++] = c;
                 } else {
