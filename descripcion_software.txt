@@ -13,13 +13,14 @@ Por otro lado, tiene los siguientes indicadores numericos:
 - peso neto: donde muestra la diferencia entre el peso final y el peso inicial.
 - caudal masico: donde muestra el caudal medido.
 - caudal volumetrico: donde muestra el caudal medido.
-- lectura de la balanza: muestra peso actual del tanque de pesada.
 
 Posee:
 - 6 recuadros donde se colocan las imagenes tomadas en orden cronológico.
 - un indicador de conexión con el banco de caudal.
 - un indicador de conexión con la cámara.
 - un botón para iniciar el ensayo.
+- un botón para iniciar el retorno.
+- un botón para finalizar el retorno.
 - un botón peso inicial.
 - un botón peso final.
 - un boton calcular caudal. 
@@ -37,19 +38,31 @@ Cuando no se esta ensayando y se presiona el botón "peso inicial" o "peso final
 
 Una vez finalizado el ensayo se debe calcular el caudal a partir de los datos de tiempo final, peso inicial y peso final obtenidos. El calculo y la indicacion se realizan una vez presionado el boton "calcular caudal", solo cuando se haya presionado el boton "peso final".
 
+Al precionar el boton "iniciar retorno" se envia el comando "INICIAR RETORNO" al banco de caudal. Cuando esto pasa el programa debe enviar al banco de caudal el comando "MEDICION BALANZA" cada un tiempo configurable con una macro y a partir del valor recibido debe controlar que el peso no sea menor a un valor configurable con una macro. Estas macros son congifurables poer el programador desde el código. Si el valor que devuelve el banco de caudal es menor o igual al valor minimo o si se presiona el boton "finalizar retorno" se debe enviar el comando FINALIZAR RETORNO al banco de caudal.
+
 No se puede presionar "iniciar ensayo" sin antes haber presionado el boton "peso inicial".
 
 Se debe tener un selector de puerto para elegir que camara usar. Este selector debe mostrar todas las camaras disponibles. En caso de no tener una camara conectada el programa seguira funcionando sin tomar las fotos. El indicador de camara conectada debe cumplir su funcion.
 
 Aunque la selección del puerto al que esta conectado el banco de caudal es automatico, debe haber un selector para poder elegir otro puerto com en caso de ser necesario. Y debe mostrar que puerto com esta seleccionado. Es decir, al inicio aparece el puerto com que se determino automaticamente, pero se puede hacer click y se debe desplegar una barra con las distintas opciones de puertos para elegir.
 
-Las imagenes se guardarán en una carpeta llamada ensayos_banco_caudal. Las imagenes corrspondientes a cada ensayo se guardan dentro de otras carpeta cuyo nombre es la fecha y hora del ensayo, y estas estaran dentro de la carpeta ensayo_banco_caudal. El nombre de las fotos sera un nuemero segun el orden cronologico en que se tomaron, la primera será la img_1. Ademas en la carpeta del ensayo debe generarse un archivo .csv con los datos de las mediciones.
+Las imagenes se guardarán en una carpeta llamada ensayos_banco_caudal. Las imagenes corrspondientes a cada ensayo se guardan dentro de otras carpeta cuyo nombre es la fecha y hora del ensayo, y estas estaran dentro de la carpeta ensayo_banco_caudal. El nombre de las fotos sera un nuemero segun el orden cronologico en que se tomaron, la primera será la img_1. 
+
+Ademas en la carpeta del ensayo debe generarse un archivo .csv con los datos de las mediciones, donde la primera columna tiene el nombre de la variable con sus respectivas unidades y la segunda el valor. Las variables que debe guarfar son:
+- fecha y hora [hh:mm:ss - dd/mm/aaaa]
+- Tiempo de ensayo [s]
+- Peso inicial [kg]
+- Peso final [kg]
+- Peso neto [kg]
+- Caudal másico [kg/s]
+- Caudal volumétrico [m3/s]
+- Densidad [kg/m3]
 
 Se debe tener un parámetro de densidad que será ingresado por el usuario en la interfaz de usuario, este debe ser mostrado. No se puede iniciar el ensayo a menos que se tenga el haya ingresado el valor de densidad. 
 
 Otras especificaciones
 1- Comunicación usb com 
-    - Parámetros: 9600 baudios, 8 bits de datos, sin paridad y un bit de stop.
+    - Parámetros: 115200 baudios, 8 bits de datos, sin paridad y un bit de stop.
     - Puerto: se elige automaticamente a partir del vendor id y del produc id, los cuales deben estar parametrizados.
     - Formato de datos recibidos según el comando enviado:
         - MEDICION BALANZA: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 7 caractes mas el terminador nulo.
@@ -75,3 +88,7 @@ Otras especificaciones
 7- Utilizá las unidades del SIMELA.
 
 8- Utilizá la librería CustomTkinter para la interfaz gráfica y threading para que la comunicación serial con el banco y la captura de imágenes con OpenCV no bloqueen la interfaz. Nota los hilos secundarios no deben actualizar la interfaz de ususario.
+
+9- Debajo del cuadro donde aparece cada imagen debe decir: "Imagen #" donde # es el numero de imagen según el orden cronológico en que se tomaron. Por ejemplo, en el primer cuadro debe aparecer "Imagen 1" y así sucesivamente.
+
+10- En los cuadros desplegables de selección de puertos COM se debe indicar a que corresponde. Es decir, si corresponde a la camara o al banco de caudal.

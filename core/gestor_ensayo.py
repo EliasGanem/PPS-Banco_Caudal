@@ -17,12 +17,15 @@ class GestorEnsayo:
         
     def iniciar_nuevo_ensayo(self) -> Path:
         """Crea el directorio para un nuevo ensayo."""
-        fecha_hora_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        ahora = datetime.now()
+        fecha_hora_str = ahora.strftime("%Y-%m-%d_%H-%M-%S")
         self.carpeta_actual = self.carpeta_base / fecha_hora_str
         # Crear directorios si no existen
         self.carpeta_actual.mkdir(parents=True, exist_ok=True)
         
-        self.datos_ensayo = {}
+        self.datos_ensayo = {
+            "fecha y hora [hh:mm:ss - dd/mm/aaaa]": ahora.strftime("%H:%M:%S - %d/%m/%Y")
+        }
         self.imagenes_tomadas = 0
         logger.info(f"Directorio de ensayo creado: {self.carpeta_actual}")
         return self.carpeta_actual

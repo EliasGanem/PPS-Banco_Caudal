@@ -9,6 +9,10 @@ from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volum
 
 logger = logging.getLogger(__name__)
 
+# Macros configurables para el retorno
+PERIODO_POLLING_RETORNO_MS = 500
+PESO_MINIMO_RETORNO_KG = 5.0
+
 class AppPrincipal(ctk.CTk):
     def __init__(self, driver_serie: ComunicacionSerie, driver_camara: CamaraUSB, gestor: GestorEnsayo):
         super().__init__()
@@ -23,6 +27,7 @@ class AppPrincipal(ctk.CTk):
         
         # Variables de estado del ensayo
         self.ensayo_en_curso = False
+        self.retorno_en_curso = False
         self.tiempo_ensayo_objetivo = 10.0
         self.fotos_tomadas = 0
         self.peso_inicial_val: Optional[float] = None
@@ -41,20 +46,24 @@ class AppPrincipal(ctk.CTk):
         self.lbl_titulo_config = ctk.CTkLabel(self.frame_config, text="Configuración de Puertos", font=("Inter", 16, "bold"))
         self.lbl_titulo_config.grid(row=0, column=0, padx=10, pady=5, sticky="w")
         
+        self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Puerto Banco de Caudal:")
+        self.lbl_banco.grid(row=1, column=0, padx=(10, 5), pady=5)
         self.cmb_puertos = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], command=self.cambiar_puerto_serie)
-        self.cmb_puertos.grid(row=1, column=0, padx=10, pady=5)
+        self.cmb_puertos.grid(row=1, column=1, padx=(0, 10), pady=5)
         
+        self.lbl_camara = ctk.CTkLabel(self.frame_config, text="Puerto Cámara:")
+        self.lbl_camara.grid(row=1, column=2, padx=(10, 5), pady=5)
         self.cmb_camaras = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], command=self.cambiar_camara)
-        self.cmb_camaras.grid(row=1, column=1, padx=10, pady=5)
+        self.cmb_camaras.grid(row=1, column=3, padx=(0, 10), pady=5)
         
         self.btn_refrescar = ctk.CTkButton(self.frame_config, text="Actualizar Dispositivos", command=self.refrescar_hardware, width=150)
-        self.btn_refrescar.grid(row=1, column=2, padx=10, pady=5)
+        self.btn_refrescar.grid(row=1, column=4, padx=10, pady=5)
         
         self.ind_banco = IndicadorConexion(self.frame_config, "Conexión Banco")
-        self.ind_banco.grid(row=1, column=3, padx=20, pady=5)
+        self.ind_banco.grid(row=1, column=5, padx=20, pady=5)
         
         self.ind_camara = IndicadorConexion(self.frame_config, "Conexión Cámara")
-        self.ind_camara.grid(row=1, column=4, padx=20, pady=5)
+        self.ind_camara.grid(row=1, column=6, padx=20, pady=5)
 
         # --- Contenedor Medio ---
         self.frame_medio = ctk.CTkFrame(self, fg_color="transparent")
@@ -95,15 +104,19 @@ class AppPrincipal(ctk.CTk):
         frame_botones_med = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
         frame_botones_med.grid(row=1, column=0, columnspan=2, pady=5)
         self.btn_peso_ini = ctk.CTkButton(frame_botones_med, text="Tomar Peso Inicial", command=self.tomar_peso_inicial)
-        self.btn_peso_ini.pack(side="left", padx=5)
+        self.btn_peso_ini.grid(row=0, column=0, padx=5, pady=5)
         self.btn_peso_fin = ctk.CTkButton(frame_botones_med, text="Tomar Peso Final", command=self.tomar_peso_final)
-        self.btn_peso_fin.pack(side="left", padx=5)
+        self.btn_peso_fin.grid(row=0, column=1, padx=5, pady=5)
         self.btn_calcular = ctk.CTkButton(frame_botones_med, text="Calcular Caudal", command=self.calcular_caudales)
-        self.btn_calcular.pack(side="left", padx=5)
+        self.btn_calcular.grid(row=0, column=2, padx=5, pady=5)
+        
+        self.btn_ini_retorno = ctk.CTkButton(frame_botones_med, text="Iniciar Retorno", command=self.iniciar_retorno, fg_color="#b8860b", hover_color="#daa520")
+        self.btn_ini_retorno.grid(row=1, column=0, padx=5, pady=5)
+        self.btn_fin_retorno = ctk.CTkButton(frame_botones_med, text="Finalizar Retorno", command=self.finalizar_retorno, fg_color="#a52a2a", hover_color="#cd5c5c", state="disabled")
+        self.btn_fin_retorno.grid(row=1, column=1, padx=5, pady=5)
 
         # Variables para mostrar resultados
         self.var_tiempo = ctk.StringVar(value="Tiempo: 0.0 s")
-        self.var_balanza = ctk.StringVar(value="Balanza: 0.000 kg")
         self.var_peso_ini = ctk.StringVar(value="Peso Inicial: ---")
         self.var_peso_fin = ctk.StringVar(value="Peso Final: ---")
         self.var_peso_neto = ctk.StringVar(value="Peso Neto: ---")
@@ -112,7 +125,7 @@ class AppPrincipal(ctk.CTk):
 
         # Grilla de resultados
         row_res = 2
-        for var in [self.var_tiempo, self.var_balanza, self.var_peso_ini, self.var_peso_fin, 
+        for var in [self.var_tiempo, self.var_peso_ini, self.var_peso_fin, 
                     self.var_peso_neto, self.var_c_masico, self.var_c_volumetrico]:
             ctk.CTkLabel(self.frame_resultados, textvariable=var, font=("Inter", 14)).grid(row=row_res, column=0, columnspan=2, pady=2, sticky="w", padx=20)
             row_res += 1
@@ -194,8 +207,11 @@ class AppPrincipal(ctk.CTk):
             if comando == "MEDICION BALANZA":
                 # Formato xxx.xxx
                 peso = float(respuesta)
-                self.var_balanza.set(f"Balanza: {peso:.3f} kg")
                 
+                if self.retorno_en_curso:
+                    if peso <= PESO_MINIMO_RETORNO_KG:
+                        self.finalizar_retorno()
+                        
                 # Si fue solicitada manualemente para el inicio o fin
                 if hasattr(self, '_esperando_peso_ini') and self._esperando_peso_ini:
                     self.peso_inicial_val = peso
@@ -226,14 +242,34 @@ class AppPrincipal(ctk.CTk):
             logger.error(f"Respuesta inválida para '{comando}': '{respuesta}'")
 
     def tomar_peso_inicial(self):
-        if self.ensayo_en_curso: return
+        if self.ensayo_en_curso or self.retorno_en_curso: return
         self._esperando_peso_ini = True
         self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=self.procesar_respuesta_serie)
 
     def tomar_peso_final(self):
-        if self.ensayo_en_curso: return
+        if self.ensayo_en_curso or self.retorno_en_curso: return
         self._esperando_peso_fin = True
         self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=self.procesar_respuesta_serie)
+
+    def iniciar_retorno(self):
+        if self.ensayo_en_curso or self.retorno_en_curso: return
+        self.retorno_en_curso = True
+        self.btn_ini_retorno.configure(state="disabled")
+        self.btn_fin_retorno.configure(state="normal")
+        self.driver_serie.enviar_comando_async("INICIAR RETORNO", espera_respuesta=False)
+        self._polling_retorno()
+
+    def _polling_retorno(self):
+        if self.retorno_en_curso:
+            self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=self.procesar_respuesta_serie)
+            self.after(PERIODO_POLLING_RETORNO_MS, self._polling_retorno)
+
+    def finalizar_retorno(self):
+        if not self.retorno_en_curso: return
+        self.retorno_en_curso = False
+        self.btn_ini_retorno.configure(state="normal")
+        self.btn_fin_retorno.configure(state="disabled")
+        self.driver_serie.enviar_comando_async("FINALIZAR RETORNO", espera_respuesta=False)
 
     def iniciar_ensayo(self):
         if self.peso_inicial_val is None:
@@ -313,12 +349,13 @@ class AppPrincipal(ctk.CTk):
             self.var_c_volumetrico.set(f"C. Volumétrico: {c_vol:.6f} m³/s")
             
             # Guardar reporte
-            self.gestor.registrar_dato("Tiempo Total [s]", f"{self.tiempo_final_val:.3f}")
-            self.gestor.registrar_dato("Peso Inicial [kg]", f"{self.peso_inicial_val:.3f}")
-            self.gestor.registrar_dato("Peso Final [kg]", f"{self.peso_final_val:.3f}")
-            self.gestor.registrar_dato("Peso Neto [kg]", f"{peso_neto:.3f}")
-            self.gestor.registrar_dato("Caudal Másico [kg/s]", f"{c_masico:.4f}")
-            self.gestor.registrar_dato("Caudal Volumétrico [m^3/s]", f"{c_vol:.6f}")
+            self.gestor.registrar_dato("Tiempo de ensayo [s]", f"{self.tiempo_final_val:.3f}")
+            self.gestor.registrar_dato("Peso inicial [kg]", f"{self.peso_inicial_val:.3f}")
+            self.gestor.registrar_dato("Peso final [kg]", f"{self.peso_final_val:.3f}")
+            self.gestor.registrar_dato("Peso neto [kg]", f"{peso_neto:.3f}")
+            self.gestor.registrar_dato("Caudal másico [kg/s]", f"{c_masico:.4f}")
+            self.gestor.registrar_dato("Caudal volumétrico [m3/s]", f"{c_vol:.6f}")
+            self.gestor.registrar_dato("Densidad [kg/m3]", f"{densidad:.3f}")
             self.gestor.guardar_reporte_csv()
             
         except Exception as e:

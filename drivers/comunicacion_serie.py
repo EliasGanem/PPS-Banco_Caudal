@@ -50,7 +50,7 @@ class ComunicacionSerie:
             try:
                 self.puerto_serial = serial.Serial(
                     port=puerto,
-                    baudrate=9600,
+                    baudrate=115200,
                     bytesize=serial.EIGHTBITS,
                     parity=serial.PARITY_NONE,
                     stopbits=serial.STOPBITS_ONE,

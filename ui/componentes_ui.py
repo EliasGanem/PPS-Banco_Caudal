@@ -29,12 +29,20 @@ class PanelImagenes(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(list(range(6)), weight=1)
         self.labels_imagenes = []
+        self.labels_textos = []
         
         for i in range(6):
-            lbl = ctk.CTkLabel(self, text=f"Captura {i+1}", width=120, height=120, 
-                               corner_radius=8, fg_color="#3b3b3b")
-            lbl.grid(row=0, column=i, padx=5, pady=5)
+            frame_img = ctk.CTkFrame(self, fg_color="transparent")
+            frame_img.grid(row=0, column=i, padx=5, pady=5)
+            
+            lbl = ctk.CTkLabel(frame_img, text="---", width=120, height=120, corner_radius=8, fg_color="#3b3b3b")
+            lbl.pack(pady=(0, 5))
+            
+            lbl_texto = ctk.CTkLabel(frame_img, text=f"Imagen {i+1}", font=("Inter", 12))
+            lbl_texto.pack()
+            
             self.labels_imagenes.append(lbl)
+            self.labels_textos.append(lbl_texto)
             
     def actualizar_imagen(self, indice: int, ruta_imagen: str):
         """Carga y muestra una imagen en el recuadro especificado."""
@@ -49,4 +57,4 @@ class PanelImagenes(ctk.CTkFrame):
     def reiniciar_panel(self):
         """Limpia las imágenes para un nuevo ensayo."""
         for i in range(6):
-            self.labels_imagenes[i].configure(image="", text=f"Captura {i+1}")
+            self.labels_imagenes[i].configure(image="", text="---")
