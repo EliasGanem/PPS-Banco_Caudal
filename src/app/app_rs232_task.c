@@ -59,7 +59,7 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
         }
       }
     }
-    HAL_UART_Write(HAL_UART_PORT_RS232, frame, 8);
+    // HAL_UART_Write(HAL_UART_PORT_RS232, frame, 8);
 
     xSemaphoreGive(rs232_mutex);
     return success;
