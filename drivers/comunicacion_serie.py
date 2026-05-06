@@ -6,6 +6,10 @@ from typing import List, Optional, Callable
 
 logger = logging.getLogger(__name__)
 
+# MACROS para terminadores (Modificables desde el código para pruebas)
+TERMINADOR_RX = b'\x00' # Terminador que se espera recibir del banco
+TERMINADOR_TX = b'\x00' # Terminador que se envía por defecto al banco
+
 class ComunicacionSerie:
     def __init__(self, vid_defecto: str = "2341", pid_defecto: str = "0043"):
         """
@@ -21,6 +25,11 @@ class ComunicacionSerie:
         self._conectado = False
         self._lock = threading.Lock()
         self._lock_com = threading.Lock()
+        self.terminal_callback: Optional[Callable[[str, bytes], None]] = None
+
+    def set_terminal_callback(self, callback: Callable[[str, bytes], None]) -> None:
+        """Establece la función a llamar cuando hay datos de TX o RX para la terminal."""
+        self.terminal_callback = callback
 
     def listar_puertos(self) -> List[str]:
         """Devuelve una lista con los nombres de los puertos COM disponibles."""
@@ -77,14 +86,15 @@ class ComunicacionSerie:
         with self._lock:
             return self._conectado
 
-    def enviar_comando_async(self, comando: str, espera_respuesta: bool = True, callback: Optional[Callable[[str, str], None]] = None) -> None:
+    def enviar_comando_async(self, comando: str, espera_respuesta: bool = True, callback: Optional[Callable[[str, str], None]] = None, terminador_tx: bytes = TERMINADOR_TX) -> None:
         """
         Envía un comando al banco de caudal en un hilo separado.
         
         Args:
-            comando: El string a enviar (el \0 se agrega internamente).
+            comando: El string a enviar.
             espera_respuesta: Indica si el comando espera datos devuelta.
             callback: Función que se llama cuando termina (con el comando y la respuesta como parámetros).
+            terminador_tx: Terminador a anexar al final del comando.
         """
         def tarea():
             with self._lock:
@@ -97,20 +107,33 @@ class ComunicacionSerie:
                 
             with self._lock_com:
                 try:
-                    # Enviar comando terminado en null character
-                    trama = comando.encode('ascii') + b'\x00'
+                    # Enviar comando con el terminador
+                    trama = comando.encode('ascii') + terminador_tx
                     puerto.write(trama)
                     puerto.flush()
                     
+                    if self.terminal_callback:
+                        self.terminal_callback("TX", trama)
+                    
                     respuesta_str = ""
                     if espera_respuesta:
-                        # Leer hasta encontrar un nulo
+                        # Leer hasta encontrar el terminador esperado o timeout
                         respuesta = b""
                         while True:
                             char = puerto.read(1)
-                            if not char or char == b'\x00':
+                            if not char:
                                 break
                             respuesta += char
+                            if respuesta.endswith(TERMINADOR_RX):
+                                break
+                                
+                        if self.terminal_callback and respuesta:
+                            self.terminal_callback("RX", respuesta)
+                            
+                        # Quitar el terminador si está al final para procesarlo
+                        if len(TERMINADOR_RX) > 0 and respuesta.endswith(TERMINADOR_RX):
+                            respuesta = respuesta[:-len(TERMINADOR_RX)]
+                            
                         respuesta_str = respuesta.decode('ascii', errors='ignore')
                     
                     if callback:

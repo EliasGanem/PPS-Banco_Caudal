@@ -35,6 +35,10 @@ class AppPrincipal(ctk.CTk):
         self.tiempo_final_val: Optional[float] = None
         
         self.construir_ui()
+        
+        # Registrar el callback para la terminal serie
+        self.driver_serie.set_terminal_callback(self._on_terminal_data)
+        
         self.inicializar_hardware()
         self.monitorear_estado()
 
@@ -130,6 +134,35 @@ class AppPrincipal(ctk.CTk):
             ctk.CTkLabel(self.frame_resultados, textvariable=var, font=("Inter", 14)).grid(row=row_res, column=0, columnspan=2, pady=2, sticky="w", padx=20)
             row_res += 1
 
+        # --- Frame Terminal Serial ---
+        self.frame_terminal = ctk.CTkFrame(self)
+        self.frame_terminal.pack(padx=20, pady=10, fill="x")
+        
+        lbl_term = ctk.CTkLabel(self.frame_terminal, text="Terminal Serial (USB COM)", font=("Inter", 14, "bold"))
+        lbl_term.pack(anchor="w", padx=10, pady=(5, 0))
+        
+        self.txt_terminal = ctk.CTkTextbox(self.frame_terminal, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
+        self.txt_terminal.pack(padx=10, pady=5, fill="x")
+        self.txt_terminal.configure(state="disabled")
+        
+        frame_envio = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
+        frame_envio.pack(padx=10, pady=5, fill="x")
+        
+        self.ent_comando = ctk.CTkEntry(frame_envio, placeholder_text="Escriba un comando...")
+        self.ent_comando.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        # Vincular tecla Enter para enviar comando
+        self.ent_comando.bind("<Return>", lambda e: self.enviar_comando_manual())
+        
+        self.cmb_terminador = ctk.CTkComboBox(frame_envio, values=["\\0 (Null)", "\\n (LF)", "\\r (CR)", "\\r\\n (CRLF)", "Ninguno"], width=120)
+        self.cmb_terminador.set("\\0 (Null)")
+        self.cmb_terminador.pack(side="left", padx=5)
+        
+        self.btn_enviar_cmd = ctk.CTkButton(frame_envio, text="Enviar", command=self.enviar_comando_manual, width=80)
+        self.btn_enviar_cmd.pack(side="left", padx=5)
+        
+        self.btn_limpiar_term = ctk.CTkButton(frame_envio, text="Limpiar", command=self.limpiar_terminal, width=80, fg_color="#444444", hover_color="#555555")
+        self.btn_limpiar_term.pack(side="left", padx=5)
+
         # --- Panel de Imágenes ---
         self.frame_imagenes = ctk.CTkFrame(self)
         self.frame_imagenes.pack(padx=20, pady=10, fill="both", expand=True)
@@ -189,6 +222,54 @@ class AppPrincipal(ctk.CTk):
         self.ind_banco.set_estado(self.driver_serie.esta_conectado())
         self.ind_camara.set_estado(self.driver_camara.esta_conectada())
         self.after(500, self.monitorear_estado)
+
+    # --- Lógica de Terminal ---
+    def _on_terminal_data(self, direccion: str, datos: bytes):
+        # Asegurarse de ejecutar en el hilo principal
+        self.after(0, self._actualizar_terminal, direccion, datos)
+
+    def _actualizar_terminal(self, direccion: str, datos: bytes):
+        if hasattr(self, 'txt_terminal'):
+            # Formatear caracteres no imprimibles como \0 o \r\n para visualizar
+            texto = datos.decode('ascii', errors='replace').replace('\x00', '\\0').replace('\r', '\\r').replace('\n', '\\n\n')
+            if not texto.endswith('\n'):
+                texto += '\n'
+            
+            self.txt_terminal.configure(state="normal")
+            
+            if direccion == "TX":
+                # Prefix visualmente distinto para transmisión
+                self.txt_terminal.insert("end", f"> TX: {texto}")
+            else:
+                self.txt_terminal.insert("end", f"< RX: {texto}")
+                
+            self.txt_terminal.see("end")
+            self.txt_terminal.configure(state="disabled")
+
+    def enviar_comando_manual(self):
+        cmd = self.ent_comando.get()
+        if not cmd:
+            return
+            
+        term_str = self.cmb_terminador.get()
+        terminador_tx = b""
+        if "\\0" in term_str:
+            terminador_tx = b"\x00"
+        elif "\\r\\n" in term_str:
+            terminador_tx = b"\r\n"
+        elif "\\n" in term_str:
+            terminador_tx = b"\n"
+        elif "\\r" in term_str:
+            terminador_tx = b"\r"
+        
+        # Enviar comando manual con su terminador seleccionado en la UI
+        self.driver_serie.enviar_comando_async(cmd, espera_respuesta=True, terminador_tx=terminador_tx)
+        self.ent_comando.delete(0, "end")
+
+    def limpiar_terminal(self):
+        self.txt_terminal.configure(state="normal")
+        self.txt_terminal.delete("1.0", "end")
+        self.txt_terminal.configure(state="disabled")
 
     # --- Lógica de Ensayo ---
     def procesar_respuesta_serie(self, comando: str, respuesta: str):
