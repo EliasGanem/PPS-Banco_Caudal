@@ -342,7 +342,17 @@ class AppPrincipal(ctk.CTk):
 
     def _polling_retorno(self):
         if self.retorno_en_curso:
-            self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=self.procesar_respuesta_serie)
+            if getattr(self, '_poll_balanza_activo', False):
+                self.after(PERIODO_POLLING_RETORNO_MS, self._polling_retorno)
+                return
+                
+            self._poll_balanza_activo = True
+            
+            def callback_interno(cmd, resp):
+                self._poll_balanza_activo = False
+                self.procesar_respuesta_serie(cmd, resp)
+                
+            self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=callback_interno)
             self.after(PERIODO_POLLING_RETORNO_MS, self._polling_retorno)
 
     def finalizar_retorno(self):
@@ -383,7 +393,17 @@ class AppPrincipal(ctk.CTk):
 
     def _polling_reloj(self):
         if self.ensayo_en_curso:
-            self.driver_serie.enviar_comando_async("MEDICION RELOJ", callback=self.procesar_respuesta_serie)
+            if getattr(self, '_poll_reloj_activo', False):
+                self.after(100, self._polling_reloj)
+                return
+                
+            self._poll_reloj_activo = True
+            
+            def callback_interno(cmd, resp):
+                self._poll_reloj_activo = False
+                self.procesar_respuesta_serie(cmd, resp)
+                
+            self.driver_serie.enviar_comando_async("MEDICION RELOJ", callback=callback_interno)
             self.after(100, self._polling_reloj)
 
     def _verificar_progreso_ensayo(self, tiempo_actual: float):
