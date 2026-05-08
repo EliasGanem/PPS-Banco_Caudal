@@ -63,7 +63,7 @@ class ComunicacionSerie:
                     bytesize=serial.EIGHTBITS,
                     parity=serial.PARITY_NONE,
                     stopbits=serial.STOPBITS_ONE,
-                    timeout=1
+                    timeout=3.0  # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
                 )
                 self._conectado = True
                 logger.info(f"Conectado a puerto serie {puerto}")
@@ -107,6 +107,10 @@ class ComunicacionSerie:
                 
             with self._lock_com:
                 try:
+                    # Limpiar el buffer de entrada para no leer basura o respuestas viejas
+                    puerto.reset_input_buffer()
+                    puerto.reset_output_buffer()
+
                     # Enviar comando con el terminador
                     trama = comando.encode('ascii') + terminador_tx
                     puerto.write(trama)

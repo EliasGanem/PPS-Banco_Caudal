@@ -27,7 +27,7 @@ Posee:
 
 Descripción de funcionamiento
 
-La comunicación con el banco de caudal es a través de usb com, se envían comandos y se reciben datos. Tanto los datos como los comandos son cadenas de caracteres, donde el ultimo caracter es el terminador nulo.
+La comunicación con el banco de caudal es a través de usb com, se envían comandos y se reciben datos. Tanto los datos como los comandos son cadenas de caracteres, donde el ultimo caracter es un terminador configurable por código (macros separadas para envío y recepción).
 Cuando se inicia el programa se intenta establecer comunicación con el banco de caudal y con la cámara.
 
 Al presionar el boton de "iniciar ensayo" se envia el comando "INICIAR ENSAYO" al banco de caudal. La duración del ensayo se obtiene del valor ingresado por el usuario en el recuadro correspondiente, el valor por defecto de la duración del ensayo es de 10 segundos (este valor debe estar parametrizado para los diseñadores puedas modificarlo en el codigo). Para saber cuanto tiempo transcurrio se envía constantemente el comando MEDICION RELOJ al banco de cauldal, pues luego de que este recibe dicho comando envía el tiempo transcurrido desde que se inicio el ensayo. Se debe comparar el valor recibido con el tiempo de ensayo configurado para determinar si finalizo el ensayo, cuando esto sucede se envía el comando FINALIZAR ENSAYO. Cuando el banco de caudal recibe el comando FINALIZAR ENSAYO envia el tiempo total del ensayo el cual se debe mostrar en el recuadro correspondiente de la interfaz de usuario. 
@@ -65,15 +65,15 @@ Otras especificaciones
     - Parámetros: 115200 baudios, 8 bits de datos, sin paridad y un bit de stop.
     - Puerto: se elige automaticamente a partir del vendor id y del produc id, los cuales deben estar parametrizados.
     - Formato de datos recibidos según el comando enviado:
-        - MEDICION BALANZA: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 7 caractes mas el terminador nulo.
-        - MEDICION RELOJ: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 8 caractes mas el terminador nulo.
+        - MEDICION BALANZA: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 7 caractes mas el terminador configurado.
+        - MEDICION RELOJ: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 8 caractes mas el terminador configurado.
         - MEDICION COMPLETA: en este caso se reciben dos string con el mismo formato que los anteriores. Pero primero llega el peso y luego el tiempo.
-    - Formato de los datos enviados: es un string de longitud variable seguido del terminador nulo. 
-        - INICIAR ENSAYO: longitud 15 caracteres mas el terminador nulo.
-        - FINALIZAR ENSAYO: longitud 16 caracteres mas el terminador nulo.
-        - MEDICION BALANZA: longitud 17 caracteres mas el terminador nulo.
-        - MEDICION RELOJ: longitud 16 caracteres mas el terminador nulo.
-        - MEDICION COMPLETA: longitud 17 caracteres mas el terminador nulo.
+    - Formato de los datos enviados: es un string de longitud variable seguido del terminador configurado. 
+        - INICIAR ENSAYO: longitud 15 caracteres mas el terminador configurado.
+        - FINALIZAR ENSAYO: longitud 16 caracteres mas el terminador configurado.
+        - MEDICION BALANZA: longitud 17 caracteres mas el terminador configurado.
+        - MEDICION RELOJ: longitud 16 caracteres mas el terminador configurado.
+        - MEDICION COMPLETA: longitud 17 caracteres mas el terminador configurado.
 
 2- No se debe bloquear la UI: la usb com y la captura de fotos corran en un hilo (thread) separado para que se pueda utilizar la camara, el banco de caudal y el resto del programa de forma simultanea.
 
