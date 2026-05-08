@@ -30,7 +30,16 @@ void App_Control_Init(void) {
 
 void App_Control_SendCmd(app_cmd_t cmd) {
   if (cmd_queue != NULL) {
-    xQueueSend(cmd_queue, &cmd, 0);
+    if (cmd == CMD_INICIAR_ENSAYO || cmd == CMD_INICIAR_RETORNO || 
+        cmd == CMD_FINALIZAR_ENSAYO || cmd == CMD_FINALIZAR_RETORNO) {
+        // Comandos críticos: Limpiamos la cola de mediciones pendientes
+        // para asegurar que el cambio de estado se ejecute de inmediato y no sea descartado.
+        xQueueReset(cmd_queue);
+        xQueueSendToFront(cmd_queue, &cmd, 0);
+    } else {
+        // Comandos de medición (se encolan normalmente)
+        xQueueSendToBack(cmd_queue, &cmd, 0);
+    }
   }
 }
 
@@ -54,10 +63,12 @@ void App_Control_Task(void *pvParameters) {
         break;
 
       case CMD_FINALIZAR_ENSAYO: {
+        // Aplicar estado seguro INMEDIATAMENTE
+        set_modo_recirculacion();
+
+        // Luego leer el reloj de forma segura
         uint8_t reloj_buf[2];
         bool reloj_ok = App_RS232_ReadReloj(reloj_buf);
-
-        set_modo_recirculacion();
 
         if (reloj_ok) {
           App_USB_SendBytes(reloj_buf, 2);
