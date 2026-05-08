@@ -35,7 +35,7 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
         frame[frame_idx] = c;
         frame_idx++;
 
-        if (c == '\r') {
+        if (c == CMD_TERMINATOR_UART) {
           if (frame_idx == 8) {
             // Frame válido
             out_buffer[0] = frame[1];
@@ -45,7 +45,7 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
             out_buffer[4] = '.';
             out_buffer[5] = frame[5];
             out_buffer[6] = frame[6];
-            out_buffer[7] = '\0';
+            out_buffer[7] = CMD_TERMINATOR_USB;
             success = true;
             break;
           } else {

@@ -6,7 +6,6 @@
 #include "freertos/task.h"
 #include <stdio.h>
 
-
 static QueueHandle_t cmd_queue;
 
 static void set_modo_recirculacion(void) {
@@ -86,6 +85,8 @@ void App_Control_Task(void *pvParameters) {
         uint8_t reloj_buf[2];
         if (App_RS232_ReadReloj(reloj_buf)) {
           App_USB_SendBytes(reloj_buf, 2);
+          // uint8_t terminador = CMD_TERMINATOR_USB;
+          //  App_USB_SendBytes(&terminador, 1);
         }
         break;
       }
@@ -98,8 +99,8 @@ void App_Control_Task(void *pvParameters) {
 
         if (b_ok) {
           App_USB_SendString(balanza_buf);
-          uint8_t nulo = '\0';
-          App_USB_SendBytes(&nulo, 1);
+          // uint8_t terminador = CMD_TERMINATOR_USB;
+          // App_USB_SendBytes(&terminador, 1);
         }
         if (r_ok) {
           App_USB_SendBytes(reloj_buf, 2);

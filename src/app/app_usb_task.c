@@ -37,7 +37,7 @@ static void app_usb_rx_task(void *pvParameters) {
         HAL_UART_Read(HAL_UART_PORT_USB, &c, 1, &read_bytes, portMAX_DELAY);
 
     if (status == HAL_UART_SUCCESS && read_bytes > 0) {
-      if (c == CMD_TERMINATOR) {
+      if (c == CMD_TERMINATOR_USB) {
         rx_buffer[rx_index] = '\0'; // Asegurar terminador nulo internamente
 
         // Parseo del comando
@@ -64,7 +64,7 @@ static void app_usb_rx_task(void *pvParameters) {
         }
         // Hacer un echo del comando recibido para confirmar su recepción
         // App_USB_SendString((char *)rx_buffer);
-        // uint8_t term = CMD_TERMINATOR;
+        // uint8_t term = CMD_TERMINATOR_USB;
         // App_USB_SendBytes(&term, 1);
 
         // Limpiar buffer

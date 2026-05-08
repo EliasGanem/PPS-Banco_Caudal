@@ -12,7 +12,8 @@
 /**
  * @brief Terminador de comandos USB
  */
-#define CMD_TERMINATOR '\r'
+#define CMD_TERMINATOR_USB '\0'
+#define CMD_TERMINATOR_UART '\r'
 
 /**
  * @brief Asignación de pines del hardware
