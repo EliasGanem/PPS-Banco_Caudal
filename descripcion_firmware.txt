@@ -27,9 +27,9 @@ Funcionamiento
 Cuando se energiza el microcontrolador incia en el estado de arranque seguro, que llamaremos "modo recirculación", en donde se habilita la "valvula_recirculacion" y el "selector_tanque" esta en el tanque de recirculación.
 
 La PC le envia al microcontrolador por usb un string (cuyo ultimo caracter es el terminador nulo) que indica el modo de operacion. Los string recibidos pueden ser:
-    - "INICIAR ENSAYO": la "valvula_recirculacion" permanece habilitada y el "selector_tanque" esta en tanque de pesada.
-    - "INICIAR RETORNO": se habilita la "valvula_pesada", luego se deshabilita la "valvula_recirculacion" y el "selector_tanque" va al tanque de retorno.
-    - "FINALIZAR ENSAYO": se lee el valor del reloj y vuelve al modo de recirculación. Luego debe enviar por USB COM el valor a la PC.
+    - "INICIAR ENSAYO": la "valvula_recirculacion" permanece habilitada y el "selector_tanque" esta en tanque de pesada.Una vez recibido este comando la PC enviara periodicamente el comando MEDICION RELOJ y en algun momento podría llegar el comando FINALIZAR ENSAYO.
+    - "INICIAR RETORNO": se habilita la "valvula_pesada", luego se deshabilita la "valvula_recirculacion" y el "selector_tanque" va al tanque de retorno. Una vez recibido este comando la PC enviara periodicamente el comando MEDICION BALANZA, por lo que el codigo debe estar preparado para recibir comandos sin descuidar el resto de cosas. En algun momento llegara el comando FINALIZAR RETORNO y se debe hacer lo correspondiente.
+    - "FINALIZAR ENSAYO": vuelve al modo de recirculación y se lee el valor del reloj. Luego debe enviar por USB COM el valor a la PC. Lea o no el valor del reloj debe finalizar el ensayo, es decir, debe ir al modo de recirculación.
     - "FINALIZAR RETORNO":vuelve al modo recirculación.
     - "MEDICION BALANZA": se lee el valor de la balanza y se envia el valor por USB COM a la PC. 
     - "MEDICION RELOJ": se lee el valor del recloj y se envia el valor por USB COM a la PC.
@@ -46,4 +46,5 @@ Observaciones:
 - Definí las siguientes tareas, podrías definir mas si es necesario, para el sistema operativo:
     - Tarea_USB: Encargada únicamente de recibir comandos de la PC y ponerlos en una "Cola" (Queue).
     - Tarea_UART: La que se encarga de hablar con la balanza/reloj. Debería usar un Mutex para asegurar que nadie mueva los pines de "hab_mux" y de "selector_uart" mientras se está realizando una lectura de la balanza o del reloj.
-- Se tiene que poder cambiar la logica de las salidas de positiva a negativa facilmente y los terminales utilizando macros o algo similar (lo que sea más conveniente)    
+- Se tiene que poder cambiar la logica de las salidas de positiva a negativa facilmente y los terminales utilizando macros o algo similar (lo que sea más conveniente).
+- Debe tener una macro con el vendor y el product id del usb. 
