@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import logging
+import time
 from typing import Optional
 from ui.componentes_ui import IndicadorConexion, PanelImagenes
 from drivers.comunicacion_serie import ComunicacionSerie
@@ -10,6 +11,7 @@ from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volum
 logger = logging.getLogger(__name__)
 
 # Macros configurables para el retorno
+DURACION_ENSAYO_POR_DEFECTO_S = 10.0
 PERIODO_POLLING_RETORNO_MS = 500
 PESO_MINIMO_RETORNO_KG = 5.0
 
@@ -28,7 +30,7 @@ class AppPrincipal(ctk.CTk):
         # Variables de estado del ensayo
         self.ensayo_en_curso = False
         self.retorno_en_curso = False
-        self.tiempo_ensayo_objetivo = 10.0
+        self.tiempo_ensayo_objetivo = DURACION_ENSAYO_POR_DEFECTO_S
         self.fotos_tomadas = 0
         self.peso_inicial_val: Optional[float] = None
         self.peso_final_val: Optional[float] = None
@@ -85,7 +87,7 @@ class AppPrincipal(ctk.CTk):
         frame_duracion.pack(pady=5, fill="x", padx=10)
         ctk.CTkLabel(frame_duracion, text="Duración Ensayo (s):").pack(side="left")
         self.ent_duracion = ctk.CTkEntry(frame_duracion)
-        self.ent_duracion.insert(0, "10.0")
+        self.ent_duracion.insert(0, str(DURACION_ENSAYO_POR_DEFECTO_S))
         self.ent_duracion.pack(side="right")
         
         frame_densidad = ctk.CTkFrame(self.frame_params, fg_color="transparent")
@@ -314,10 +316,11 @@ class AppPrincipal(ctk.CTk):
             elif comando == "FINALIZAR ENSAYO":
                 tiempo_total = float(respuesta)
                 self.tiempo_final_val = tiempo_total
+                # Actualizamos la etiqueta con el tiempo oficial del hardware
                 self.var_tiempo.set(f"Tiempo Total: {tiempo_total:.3f} s")
                 self.ensayo_en_curso = False
                 self.btn_iniciar.configure(state="normal")
-                logger.info(f"Ensayo finalizado. Tiempo: {tiempo_total}s")
+                logger.info(f"Ensayo finalizado. Tiempo oficial: {tiempo_total}s")
                 
         except ValueError:
             logger.error(f"Respuesta inválida para '{comando}': '{respuesta}'")
@@ -388,38 +391,32 @@ class AppPrincipal(ctk.CTk):
         # Tomar primera foto en T=0
         self._capturar_y_mostrar_foto()
         
-        # Iniciar ciclo de polling del reloj
-        self._polling_reloj()
+        self.tiempo_inicio_ensayo_pc = time.perf_counter()
+        self._verificar_progreso_ensayo_pc()
 
-    def _polling_reloj(self):
-        if self.ensayo_en_curso:
-            if getattr(self, '_poll_reloj_activo', False):
-                self.after(100, self._polling_reloj)
-                return
-                
-            self._poll_reloj_activo = True
+    def _verificar_progreso_ensayo_pc(self):
+        if not self.ensayo_en_curso:
+            return
             
-            def callback_interno(cmd, resp):
-                self._poll_reloj_activo = False
-                self.procesar_respuesta_serie(cmd, resp)
-                
-            self.driver_serie.enviar_comando_async("MEDICION RELOJ", callback=callback_interno)
-            self.after(100, self._polling_reloj)
-
-    def _verificar_progreso_ensayo(self, tiempo_actual: float):
-        # Verificar si hay que tomar foto
-        # Si fotos_tomadas es N, la siguiente debe tomarse en N * (Tiempo_Objetivo / 5)
-        # La 1ra (0) ya se tomó al inicio. La 6ta (5) se toma al final.
-        siguiente_objetivo = self.fotos_tomadas * (self.tiempo_ensayo_objetivo / 5.0)
+        tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio_ensayo_pc
         
-        if tiempo_actual >= siguiente_objetivo and self.fotos_tomadas <= 5:
+        # Actualizar visualmente el tiempo
+        self.var_tiempo.set(f"Tiempo: {tiempo_transcurrido:.3f} s")
+        
+        # Verificar si hay que tomar foto
+        siguiente_objetivo = self.fotos_tomadas * (self.tiempo_ensayo_objetivo / 5.0)
+        if tiempo_transcurrido >= siguiente_objetivo and self.fotos_tomadas <= 5:
             self._capturar_y_mostrar_foto()
 
-        if tiempo_actual >= self.tiempo_ensayo_objetivo:
-            self.driver_serie.enviar_comando_async("FINALIZAR ENSAYO", callback=self.procesar_respuesta_serie)
+        if tiempo_transcurrido >= self.tiempo_ensayo_objetivo:
             # Asegurar la última foto
             if self.fotos_tomadas <= 5:
                 self._capturar_y_mostrar_foto()
+                
+            # Fin del ensayo, solicitar tiempo oficial
+            self.driver_serie.enviar_comando_async("FINALIZAR ENSAYO", callback=self.procesar_respuesta_serie)
+        else:
+            self.after(50, self._verificar_progreso_ensayo_pc)
 
     def _capturar_y_mostrar_foto(self):
         if self.fotos_tomadas >= 6: return
