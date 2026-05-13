@@ -29,9 +29,10 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
 
     // Sincronizar y leer frame válido (timeout 1000ms)
     uint32_t start_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
-    while ((xTaskGetTickCount() * portTICK_PERIOD_MS - start_time) < 10000) {
-      if (HAL_UART_Read(HAL_UART_PORT_RS232, &c, 1, &bytes_read, 50) ==
-              HAL_UART_SUCCESS &&
+    while ((xTaskGetTickCount() * portTICK_PERIOD_MS - start_time) <
+           TIME_OUT_BALANZA) {
+      if (HAL_UART_Read(HAL_UART_PORT_RS232, &c, 1, &bytes_read,
+                        TIME_OUT_BYTE_BALANZA) == HAL_UART_SUCCESS &&
           bytes_read == 1) {
         frame[frame_idx] = c;
         frame_idx++;
@@ -85,8 +86,8 @@ bool App_RS232_ReadReloj(char *out_buffer) {
     bool success = false;
     uint8_t raw_buf[2];
 
-    if (HAL_UART_Read(HAL_UART_PORT_RS232, raw_buf, 2, &bytes_read, 10000) ==
-        HAL_UART_SUCCESS) {
+    if (HAL_UART_Read(HAL_UART_PORT_RS232, raw_buf, 2, &bytes_read,
+                      TIME_OUT_RELOJ) == HAL_UART_SUCCESS) {
       if (bytes_read == 2) {
         uint16_t time_ms = (uint16_t)raw_buf[0] | ((uint16_t)raw_buf[1] << 8);
         uint16_t seconds = time_ms / 1000;

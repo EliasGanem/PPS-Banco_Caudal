@@ -45,4 +45,11 @@
 #define VAL_SEL_UART_BALANZA 0
 #define VAL_SEL_UART_RELOJ 1
 
+/**
+ * @brief Valores de time out para comunicación RS-232
+ */
+#define TIME_OUT_BYTE_BALANZA 50 // milisegundos
+#define TIME_OUT_BALANZA 300     // milisegundos
+#define TIME_OUT_RELOJ 100       // milisegundos
+
 #endif // BOARD_CONFIG_H
