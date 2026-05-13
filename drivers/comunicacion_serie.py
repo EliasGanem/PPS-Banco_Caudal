@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 # MACROS para terminadores (Modificables desde el código para pruebas)
 TERMINADOR_RX = b'\x00' # Terminador que se espera recibir del banco
 TERMINADOR_TX = b'\x00' # Terminador que se envía por defecto al banco
+TIME_OUT_USB = 0.5      # Tiempo en segundos
+BAUDRATE_USB = 115200
 
 class ComunicacionSerie:
     def __init__(self, vid_defecto: str = "2341", pid_defecto: str = "0043"):
@@ -59,11 +61,11 @@ class ComunicacionSerie:
             try:
                 self.puerto_serial = serial.Serial(
                     port=puerto,
-                    baudrate=115200,
+                    baudrate=BAUDRATE_USB,
                     bytesize=serial.EIGHTBITS,
                     parity=serial.PARITY_NONE,
                     stopbits=serial.STOPBITS_ONE,
-                    timeout=3.0  # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
+                    timeout= TIME_OUT_USB # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
                 )
                 self._conectado = True
                 logger.info(f"Conectado a puerto serie {puerto}")

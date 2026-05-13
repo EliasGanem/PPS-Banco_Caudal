@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Macros configurables para el retorno
 DURACION_ENSAYO_POR_DEFECTO_S = 10.0
-PERIODO_POLLING_RETORNO_MS = 500
+PERIODO_POLLING_RETORNO_MS = 1000
 PESO_MINIMO_RETORNO_KG = 5.0
 
 class AppPrincipal(ctk.CTk):
