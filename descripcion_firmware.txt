@@ -21,7 +21,7 @@ La balanza tiene una salida serie RS232 a 1200 baudios, 8 bit de datos, sin pari
 Para que el microcontrolador pueda comunicarse con la balanza los pines GPIO 26 y GPIO 27 deben estar en bajo.
 
 Comunicación con el reloj
-El reloj inicia automaticamente al comenzar el ensayo. Para poder leer el valor "selector_uart" debe estar en el reloj y "hab_mux" debe estar en bajo (es decir activo, ya que es logica negada) y se le debe enviar un comando que llamaremos "PEDIR TIEMPO" que será un entero cuyo valor es 100. Una vez que el reloj recibe este comando, envia el valor del reloj en 2 bytes. Todavia no esta definido como se deben procesar estos datos.
+La cuenta del reloj inicia automaticamente al comenzar el ensayo y termina cuando se lo finaliza. Para poder leer el valor "selector_uart" debe estar en el reloj y "hab_mux" debe estar en bajo (es decir activo, ya que es logica negada) y se le debe enviar un comando que llamaremos "PEDIR TIEMPO" que será un entero cuyo valor es 100. Una vez que el reloj recibe este comando, envia el tiempo transcurrido en milisegundos por medio de 2 bytes en formato little endian que forman un entero sin signo. Por ejemplo: se recibe 0xab 0x11 al darlo vuelta queda 0x11 0xab lo que en decimal es 4523, es decir 4,523 segundos.
 
 Funcionamiento
 Cuando se energiza el microcontrolador incia en el estado de arranque seguro, que llamaremos "modo recirculación", en donde se habilita la "valvula_recirculacion" y el "selector_tanque" esta en el tanque de recirculación.
@@ -39,7 +39,7 @@ NOTA: Cuando se recibe y procesa un comando válido de la PC, el firmware respon
 
 Los datos se deben enviar a traves de USB en el siguiente formato:
 - Cuando se envia el peso de la balanza se lo hace enviando un string de 8 caracteres donde el ultimo es el terminador nulo. Los caracteres que se envian por usb a la PC son los recibidos de la balanza en el siguiente formato "PPPP.PP", el punto es un caracter.
-- Cuando se envia el valor del reloj a la PC, envía los bytes recibidos.
+- Cuando se envia el valor del reloj a la PC, se envia un string de 9 caracteres en el formato "XXXX.YYY", donde el punto es un caracter y la cadena incluye un terminador que debe estar parametrizado por una macro. Las X representan los segundos, se completa con ceros a la izquierda si es necesario, y las Y representan los milisegundos.
 
 Observaciones:
 - Al cambiar el "selector_uart", el firmware debe limpiar el buffer del UART y esperar a detectar el inicio del frame.

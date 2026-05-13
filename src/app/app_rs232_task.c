@@ -5,6 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include <stdio.h>
 
 static SemaphoreHandle_t rs232_mutex;
 
@@ -22,7 +23,7 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
     // La balanza envía continuamente de a 8 bytes "SPPPPPPC" donde C es '\r'
     bool success = false;
     uint8_t c;
-    int frame_idx = 0;
+    uint8_t frame_idx = 0;
     uint8_t frame[8];
     size_t bytes_read = 0;
 
@@ -67,7 +68,7 @@ bool App_RS232_ReadBalanza(char *out_buffer) {
   return false;
 }
 
-bool App_RS232_ReadReloj(uint8_t *out_buffer) {
+bool App_RS232_ReadReloj(char *out_buffer) {
   if (xSemaphoreTake(rs232_mutex, portMAX_DELAY) == pdTRUE) {
     // Seleccionar Reloj
     HAL_GPIO_Write(PIN_SELECTOR_UART, VAL_SEL_UART_RELOJ);
@@ -82,10 +83,17 @@ bool App_RS232_ReadReloj(uint8_t *out_buffer) {
     // Leer 2 bytes
     size_t bytes_read = 0;
     bool success = false;
+    uint8_t raw_buf[2];
 
-    if (HAL_UART_Read(HAL_UART_PORT_RS232, out_buffer, 2, &bytes_read, 10000) ==
+    if (HAL_UART_Read(HAL_UART_PORT_RS232, raw_buf, 2, &bytes_read, 10000) ==
         HAL_UART_SUCCESS) {
       if (bytes_read == 2) {
+        uint16_t time_ms = (uint16_t)raw_buf[0] | ((uint16_t)raw_buf[1] << 8);
+        uint16_t seconds = time_ms / 1000;
+        uint16_t milliseconds = time_ms % 1000;
+
+        snprintf(out_buffer, 10, "%04u.%03u", seconds, milliseconds);
+        out_buffer[8] = CMD_TERMINATOR_USB;
         success = true;
       }
     }

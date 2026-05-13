@@ -20,9 +20,9 @@ bool App_RS232_ReadBalanza(char* out_buffer);
 /**
  * @brief Lee el reloj. Aplica Mutex, cambia selectores, manda comando y lee respuesta.
  * 
- * @param out_buffer Buffer de al menos 2 bytes
+ * @param out_buffer Buffer de al menos 9 bytes donde se escribirá "XXXX.YYY\0" o con terminador macro.
  * @return true si fue exitoso, false en error o timeout
  */
-bool App_RS232_ReadReloj(uint8_t* out_buffer);
+bool App_RS232_ReadReloj(char* out_buffer);
 
 #endif // APP_RS232_TASK_H

@@ -67,11 +67,11 @@ void App_Control_Task(void *pvParameters) {
         set_modo_recirculacion();
 
         // Luego leer el reloj de forma segura
-        uint8_t reloj_buf[2];
+        char reloj_buf[9];
         bool reloj_ok = App_RS232_ReadReloj(reloj_buf);
 
         if (reloj_ok) {
-          App_USB_SendBytes(reloj_buf, 2);
+          App_USB_SendBytes((const uint8_t *)reloj_buf, 9);
         }
         break;
       }
@@ -93,18 +93,16 @@ void App_Control_Task(void *pvParameters) {
       }
 
       case CMD_MEDICION_RELOJ: {
-        uint8_t reloj_buf[2];
+        char reloj_buf[9];
         if (App_RS232_ReadReloj(reloj_buf)) {
-          App_USB_SendBytes(reloj_buf, 2);
-          // uint8_t terminador = CMD_TERMINATOR_USB;
-          //  App_USB_SendBytes(&terminador, 1);
+          App_USB_SendBytes((const uint8_t *)reloj_buf, 9);
         }
         break;
       }
 
       case CMD_MEDICION_COMPLETA: {
         char balanza_buf[16];
-        uint8_t reloj_buf[2];
+        char reloj_buf[9];
         bool b_ok = App_RS232_ReadBalanza(balanza_buf);
         bool r_ok = App_RS232_ReadReloj(reloj_buf);
 
@@ -114,7 +112,7 @@ void App_Control_Task(void *pvParameters) {
           // App_USB_SendBytes(&terminador, 1);
         }
         if (r_ok) {
-          App_USB_SendBytes(reloj_buf, 2);
+          App_USB_SendBytes((const uint8_t *)reloj_buf, 9);
         }
         break;
       }
