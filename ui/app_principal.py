@@ -69,8 +69,8 @@ class AppPrincipal(ctk.CTk):
         # Contenedor superior para Puertos y Advertencias
         self.frame_top = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.frame_top.pack(padx=20, pady=(15, 5), fill="x")
-        self.frame_top.grid_columnconfigure(0, weight=1, uniform="top_cols") # Ocupa la mitad
-        self.frame_top.grid_columnconfigure(1, weight=1, uniform="top_cols") # Ocupa la mitad
+        self.frame_top.grid_columnconfigure(0, weight=3, uniform="top_cols") # Ocupa 3/5
+        self.frame_top.grid_columnconfigure(1, weight=2, uniform="top_cols") # Ocupa 2/5
         
         # --- Bloque 1A: Configuración de Puertos ---
         self.frame_config = ContenedorConTitulo(self.frame_top, titulo="Configuración de Puertos")
@@ -105,7 +105,7 @@ class AppPrincipal(ctk.CTk):
         
         self.var_advertencia = ctk.StringVar(value="")
         # Usamos un textbox deshabilitado o un label wrap para mostrar el texto
-        self.lbl_advertencia = ctk.CTkLabel(self.frame_adv, textvariable=self.var_advertencia, font=("Inter", 14), text_color="#FF9800", justify="left", wraplength=550)
+        self.lbl_advertencia = ctk.CTkLabel(self.frame_adv, textvariable=self.var_advertencia, font=("Inter", 14), text_color="#FF9800", justify="left", wraplength=420)
         self.lbl_advertencia.pack(padx=15, pady=(45, 15), anchor="w")
 
         # Variables para mostrar resultados
