@@ -9,8 +9,8 @@ class ContenedorConTitulo(ctk.CTkFrame):
     def __init__(self, master, titulo: str, **kwargs):
         super().__init__(master, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8, **kwargs)
         # Añadir un margen interno superior para dejar lugar al título
-        self.lbl_titulo = ctk.CTkLabel(self, text=titulo, font=("Inter", 16, "bold"), text_color="#FFFFFF")
-        self.lbl_titulo.place(x=15, y=-10) # Truco sencillo para superponer el texto en el borde
+        self.lbl_titulo = ctk.CTkLabel(self, text=titulo, font=("Inter", 14, "bold"), text_color="#FFFFFF", fg_color="#2b2b2b")
+        self.lbl_titulo.place(x=15, y=8) # Ubicamos el texto adentro para evitar que se recorte
 
 
 class IndicadorConexion(ctk.CTkFrame):

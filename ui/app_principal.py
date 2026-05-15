@@ -52,27 +52,27 @@ class AppPrincipal(ctk.CTk):
         self.frame_config.pack(padx=20, pady=(15, 5), fill="x")
         
         self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Banco de Caudal", font=("Inter", 14), text_color="#FFFFFF")
-        self.lbl_banco.grid(row=0, column=0, padx=(15, 5), pady=15, sticky="w")
+        self.lbl_banco.grid(row=0, column=0, padx=(15, 5), pady=(45, 15), sticky="w")
         
         self.cmb_puertos = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], fg_color="#D3D3D3", text_color="#000000")
         self.cmb_puertos.configure(command=self.cambiar_puerto_serie)
-        self.cmb_puertos.grid(row=0, column=1, padx=(0, 10), pady=15)
+        self.cmb_puertos.grid(row=0, column=1, padx=(0, 10), pady=(45, 15))
         
         self.ind_banco = IndicadorConexion(self.frame_config, "")
-        self.ind_banco.grid(row=0, column=2, padx=(0, 20), pady=15)
+        self.ind_banco.grid(row=0, column=2, padx=(0, 20), pady=(45, 15))
         
         self.lbl_camara = ctk.CTkLabel(self.frame_config, text="Cámara", font=("Inter", 14), text_color="#FFFFFF")
-        self.lbl_camara.grid(row=0, column=3, padx=(20, 5), pady=15, sticky="w")
+        self.lbl_camara.grid(row=0, column=3, padx=(20, 5), pady=(45, 15), sticky="w")
         
         self.cmb_camaras = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], fg_color="#D3D3D3", text_color="#000000")
         self.cmb_camaras.configure(command=self.cambiar_camara)
-        self.cmb_camaras.grid(row=0, column=4, padx=(0, 10), pady=15)
+        self.cmb_camaras.grid(row=0, column=4, padx=(0, 10), pady=(45, 15))
         
         self.ind_camara = IndicadorConexion(self.frame_config, "")
-        self.ind_camara.grid(row=0, column=5, padx=(0, 20), pady=15)
+        self.ind_camara.grid(row=0, column=5, padx=(0, 20), pady=(45, 15))
         
         self.btn_refrescar = ctk.CTkButton(self.frame_config, text="🔄", width=40, font=("Inter", 18), fg_color="#1976D2", hover_color="#2196F3", command=self.refrescar_hardware)
-        self.btn_refrescar.grid(row=0, column=6, padx=(10, 15), pady=15)
+        self.btn_refrescar.grid(row=0, column=6, padx=(10, 15), pady=(45, 15))
 
         # Variables para mostrar resultados
         self.var_tiempo = ctk.StringVar(value="0.00")
@@ -128,7 +128,7 @@ class AppPrincipal(ctk.CTk):
         self.frame_mediciones.grid(row=0, column=1, padx=(5, 5), sticky="nsew")
         
         self.frame_med_inner = ctk.CTkFrame(self.frame_mediciones, fg_color="transparent")
-        self.frame_med_inner.pack(padx=15, pady=20, fill="both", expand=True)
+        self.frame_med_inner.pack(padx=15, pady=(35, 20), fill="both", expand=True)
         self.frame_med_inner.grid_columnconfigure(1, weight=1)
         
         self.btn_peso_ini = ctk.CTkButton(self.frame_med_inner, text="Peso Inicial [kg]", command=self.tomar_peso_inicial, fg_color="#424242", hover_color="#545454", width=120)
@@ -164,14 +164,14 @@ class AppPrincipal(ctk.CTk):
         self.frame_imagenes = ContenedorConTitulo(self, titulo="Imágenes del Ensayo")
         self.frame_imagenes.pack(padx=20, pady=(5, 5), fill="both", expand=True)
         self.panel_img = PanelImagenes(self.frame_imagenes)
-        self.panel_img.pack(fill="both", expand=True, padx=10, pady=15)
+        self.panel_img.pack(fill="both", expand=True, padx=10, pady=(35, 15))
 
         # --- Bloque 4: Terminal ---
         self.frame_terminal = ContenedorConTitulo(self, titulo="Terminal")
         self.frame_terminal.pack(padx=20, pady=(5, 15), fill="x")
         
         self.txt_terminal = ctk.CTkTextbox(self.frame_terminal, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
-        self.txt_terminal.pack(padx=15, pady=(20, 5), fill="x")
+        self.txt_terminal.pack(padx=15, pady=(35, 5), fill="x")
         self.txt_terminal.configure(state="disabled")
         
         frame_envio = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
