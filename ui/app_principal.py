@@ -7,6 +7,16 @@ from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
 from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
+from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
+
+class UILogHandler(logging.Handler):
+    def __init__(self, callback):
+        super().__init__()
+        self.callback = callback
+    def emit(self, record):
+        if record.levelno >= logging.WARNING:
+            msg = self.format(record)
+            self.callback(msg)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +48,11 @@ class AppPrincipal(ctk.CTk):
         
         self.construir_ui()
         
+        # Configurar interceptor de logs para Advertencias
+        self.ui_log_handler = UILogHandler(self._mostrar_advertencia)
+        self.ui_log_handler.setFormatter(logging.Formatter('%(message)s')) # Mostramos solo el mensaje
+        logging.getLogger().addHandler(self.ui_log_handler)
+        
         # Registrar el callback para la terminal serie
         self.driver_serie.set_terminal_callback(self._on_terminal_data)
         
@@ -51,9 +66,15 @@ class AppPrincipal(ctk.CTk):
         self.main_container = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.main_container.pack(fill="both", expand=True)
         
-        # --- Bloque 1: Configuración de Puertos ---
-        self.frame_config = ContenedorConTitulo(self.main_container, titulo="Configuración de Puertos")
-        self.frame_config.pack(padx=20, pady=(15, 5), fill="x")
+        # Contenedor superior para Puertos y Advertencias
+        self.frame_top = ctk.CTkFrame(self.main_container, fg_color="transparent")
+        self.frame_top.pack(padx=20, pady=(15, 5), fill="x")
+        self.frame_top.grid_columnconfigure(0, weight=1, uniform="top_cols") # Ocupa la mitad
+        self.frame_top.grid_columnconfigure(1, weight=1, uniform="top_cols") # Ocupa la mitad
+        
+        # --- Bloque 1A: Configuración de Puertos ---
+        self.frame_config = ContenedorConTitulo(self.frame_top, titulo="Configuración de Puertos")
+        self.frame_config.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
         
         self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Banco de Caudal", font=("Inter", 14), text_color="#FFFFFF")
         self.lbl_banco.grid(row=0, column=0, padx=(15, 5), pady=(45, 15), sticky="w")
@@ -77,6 +98,15 @@ class AppPrincipal(ctk.CTk):
         
         self.btn_refrescar = ctk.CTkButton(self.frame_config, text="🔄", width=40, font=("Inter", 18), fg_color="#1976D2", hover_color="#2196F3", command=self.refrescar_hardware)
         self.btn_refrescar.grid(row=0, column=6, padx=(10, 15), pady=(45, 15))
+        
+        # --- Bloque 1B: Advertencias ---
+        self.frame_adv = ContenedorConTitulo(self.frame_top, titulo="Advertencias")
+        self.frame_adv.grid(row=0, column=1, padx=(10, 0), sticky="nsew")
+        
+        self.var_advertencia = ctk.StringVar(value="")
+        # Usamos un textbox deshabilitado o un label wrap para mostrar el texto
+        self.lbl_advertencia = ctk.CTkLabel(self.frame_adv, textvariable=self.var_advertencia, font=("Inter", 14), text_color="#FF9800", justify="left", wraplength=550)
+        self.lbl_advertencia.pack(padx=15, pady=(45, 15), anchor="w")
 
         # Variables para mostrar resultados
         self.var_tiempo = ctk.StringVar(value="0.00")
@@ -247,6 +277,13 @@ class AppPrincipal(ctk.CTk):
         self.ind_banco.set_estado(self.driver_serie.esta_conectado())
         self.ind_camara.set_estado(self.driver_camara.esta_conectada())
         self.after(500, self.monitorear_estado)
+
+    def _mostrar_advertencia(self, mensaje: str):
+        # Actualiza el recuadro de advertencias de forma segura
+        def update():
+            if hasattr(self, 'var_advertencia'):
+                self.var_advertencia.set(mensaje)
+        self.after(0, update)
 
     # --- Lógica de Terminal ---
     def _on_terminal_data(self, direccion: str, datos: bytes):

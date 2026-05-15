@@ -17,12 +17,16 @@ Este código se encarga de controlar por USB COM un banco de caudal, que se util
 La interfaz está dividida en cuatro bloques horizontales principales. Cada bloque tendrá un fondo de color gris más claro (#2b2b2b) y el título de cada sección está incrustado en la línea superior del marco (estilo fieldset y legend en HTML).
 
 Diseño y Disposición (Layout) por Secciones
-1. Panel Superior: "Configuración de Puertos"
-    - Estructura: Ocupa todo el ancho de la interfaz.
-    - Elementos:
-        - A la izquierda: Un texto que dice "Banco de Caudal" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
-        - A la derecha de lo anterior, con un espaciado suficiente como para distinguir que se tratan de opciones distintas, u texto que dice "Cámara" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
-        - Luego de estas opciones, con un espaciado suficiente, un botón circular con el ícono de actualizar, el cual sirve para actualizar los puertos COM de la cámara y el banco de caudal. 
+1. Panel Superior: está dividido en dos columnas: 
+    1. "Configuración de Puertos"
+        - Estructura: ocupa la mitad izquierda del ancho de la interfaz.
+        - Elementos:
+            - A la izquierda: Un texto que dice "Banco de Caudal" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
+            - A la derecha de lo anterior, con un espaciado suficiente como para distinguir que se tratan de opciones distintas, u texto que dice "Cámara" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
+            - Luego de estas opciones, con un espaciado suficiente, un botón circular con el ícono de actualizar, el cual sirve para actualizar los puertos COM de la cámara y el banco de caudal. 
+    2. "Advertencias"
+        - Estructura: ocupa la mitad derecha del ancho de la interfaz.
+        - Tiene un recuadro de texto donde se mostrarán las advertencias. Como por ejemplo: falta peso inicial para iniciar ensayo o no está conectado el banco de caudal.
 
 2. Panel Central: está dividido en dos columnas.
     - Columna Izquierda (1/3 del total): está dividida en tres secciones horizontales:
