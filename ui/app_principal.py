@@ -458,6 +458,15 @@ class AppPrincipal(ctk.CTk):
         self.panel_img.reiniciar_panel()
         self.btn_iniciar.configure(state="disabled")
         
+        # Limpiar resultados visuales del ensayo anterior
+        self.peso_final_val = None
+        self.tiempo_final_val = None
+        self.var_peso_fin.set("---")
+        self.var_peso_neto.set("---")
+        self.var_c_masico.set("---")
+        self.var_c_volumetrico.set("---")
+        self.var_tiempo.set("0.00")
+        
         self.gestor.iniciar_nuevo_ensayo()
         self.driver_serie.enviar_comando_async("INICIAR ENSAYO", espera_respuesta=False)
         
