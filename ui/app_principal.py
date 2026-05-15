@@ -47,8 +47,12 @@ class AppPrincipal(ctk.CTk):
     def construir_ui(self):
         self.configure(fg_color="#242424")
         
+        # Contenedor principal scrolleable para adaptarse a pantallas chicas
+        self.main_container = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.main_container.pack(fill="both", expand=True)
+        
         # --- Bloque 1: Configuración de Puertos ---
-        self.frame_config = ContenedorConTitulo(self, titulo="Configuración de Puertos")
+        self.frame_config = ContenedorConTitulo(self.main_container, titulo="Configuración de Puertos")
         self.frame_config.pack(padx=20, pady=(15, 5), fill="x")
         
         self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Banco de Caudal", font=("Inter", 14), text_color="#FFFFFF")
@@ -83,7 +87,7 @@ class AppPrincipal(ctk.CTk):
         self.var_c_volumetrico = ctk.StringVar(value="---")
 
         # --- Bloque 2: Panel Central ---
-        self.frame_medio = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_medio = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.frame_medio.pack(padx=20, pady=5, fill="x")
         self.frame_medio.grid_columnconfigure(0, weight=4)
         self.frame_medio.grid_columnconfigure(1, weight=3)
@@ -161,13 +165,13 @@ class AppPrincipal(ctk.CTk):
             ent.grid(row=i, column=1, padx=(10, 0), pady=4, sticky="e")
 
         # --- Bloque 3: Imágenes del Ensayo ---
-        self.frame_imagenes = ContenedorConTitulo(self, titulo="Imágenes del Ensayo")
-        self.frame_imagenes.pack(padx=20, pady=(5, 5), fill="both", expand=True)
+        self.frame_imagenes = ContenedorConTitulo(self.main_container, titulo="Imágenes del Ensayo")
+        self.frame_imagenes.pack(padx=20, pady=(5, 5), fill="x")
         self.panel_img = PanelImagenes(self.frame_imagenes)
-        self.panel_img.pack(fill="both", expand=True, padx=10, pady=(35, 15))
+        self.panel_img.pack(fill="x", padx=10, pady=(35, 15))
 
         # --- Bloque 4: Terminal ---
-        self.frame_terminal = ContenedorConTitulo(self, titulo="Terminal")
+        self.frame_terminal = ContenedorConTitulo(self.main_container, titulo="Terminal")
         self.frame_terminal.pack(padx=20, pady=(5, 15), fill="x")
         
         self.txt_terminal = ctk.CTkTextbox(self.frame_terminal, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
