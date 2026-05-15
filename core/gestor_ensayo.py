@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 from pathlib import Path
 import logging
+import json
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -9,11 +10,34 @@ logger = logging.getLogger(__name__)
 class GestorEnsayo:
     """Maneja el estado del ensayo y el almacenamiento de datos en disco."""
     def __init__(self):
-        # Utiliza pathlib para compatibilidad de rutas multiplataforma
-        self.carpeta_base = Path("ensayos_banco_caudal")
+        self.config_path = Path(__file__).parent.parent / "config.json"
+        self.carpeta_base = self._cargar_ruta_base()
         self.carpeta_actual: Path | None = None
         self.datos_ensayo: Dict[str, Any] = {}
         self.imagenes_tomadas = 0
+        
+    def _cargar_ruta_base(self) -> Path:
+        default_path = Path(__file__).parent.parent.absolute() / "ensayos_banco_caudal"
+        try:
+            if self.config_path.exists():
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    ruta = config.get("carpeta_base", "")
+                    if ruta:
+                        return Path(ruta)
+        except Exception as e:
+            logger.error(f"Error cargando config: {e}")
+        return default_path
+        
+    def cambiar_ruta_base(self, nueva_ruta: str) -> None:
+        self.carpeta_base = Path(nueva_ruta)
+        self.carpeta_base.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump({"carpeta_base": str(self.carpeta_base)}, f)
+            logger.info(f"Ruta base cambiada a: {self.carpeta_base}")
+        except Exception as e:
+            logger.error(f"Error guardando config: {e}")
         
     def iniciar_nuevo_ensayo(self) -> Path:
         """Crea el directorio para un nuevo ensayo."""

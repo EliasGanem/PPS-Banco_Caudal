@@ -18,12 +18,13 @@ La interfaz está dividida en cuatro bloques horizontales principales. Cada bloq
 
 Diseño y Disposición (Layout) por Secciones
 1. Panel Superior: está dividido en dos columnas: 
-    1. "Configuración de Puertos"
+    1. "Configuración"
         - Estructura: ocupa la mitad izquierda del ancho de la interfaz.
         - Elementos:
             - A la izquierda: Un texto que dice "Banco de Caudal" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
             - A la derecha de lo anterior, con un espaciado suficiente como para distinguir que se tratan de opciones distintas, u texto que dice "Cámara" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
             - Luego de estas opciones, con un espaciado suficiente, un botón circular con el ícono de actualizar, el cual sirve para actualizar los puertos COM de la cámara y el banco de caudal. 
+            - En la parte derecha hay un icono de una carpeta. Si se posiciona el mouse encima de este se muestra la ruta actual de la carpeta "ensayos_banco_caudal". Si se presiona el icono se abre un explorador de archivos para seleccionar la nueva ruta.
     2. "Advertencias"
         - Estructura: ocupa la mitad derecha del ancho de la interfaz.
         - Tiene un recuadro de texto donde se mostrarán las advertencias. Como por ejemplo: falta peso inicial para iniciar ensayo o no está conectado el banco de caudal.
@@ -41,11 +42,11 @@ Diseño y Disposición (Layout) por Secciones
             - A la derecha del anterior, a una distancia suficiente, un botón que ocupa el espacio restante de la columna con el texto "Finalizar Retorno".
 
     - Columna Derecha: está dividida en dos secciones horizontales
-        1. Primera sección horizontal tiene el título“Mediciones”
+        1. Primera sección horizontal tiene el título “Mediciones”
             - Estructura: Una lista de dos campos que son botones de acción alineados verticalmente a la izquierda. A la derecha de cada uno de botones, hay un recuadro que es un campo numérico que mostrará el valor de la variable indicada.
-            - Campos:   
-                - "Peso Inicial [kg]" 
-                - "Peso Final [kg]" 
+                - Campos:   
+                    - "Peso Inicial [kg]" 
+                    - "Peso Final [kg]" 
         2. Segunda sección horizontal tiene el título “Resultados”, el cual es un botón de acción para calcular los caudales.
             - Estructura: Una lista de cuatro campos alineados verticalmente a la izquierda. Tienen el título a la izquierda y el valor dentro de un recuadro que es un campo numérico que mostrará el valor de la variable indicada.
             - Campos: 

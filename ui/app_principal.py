@@ -2,11 +2,11 @@ import customtkinter as ctk
 import logging
 import time
 from typing import Optional
-from ui.componentes_ui import IndicadorConexion, PanelImagenes, ContenedorConTitulo
+from tkinter import filedialog
+from ui.componentes_ui import IndicadorConexion, PanelImagenes, ContenedorConTitulo, ToolTip
 from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
-from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
 from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
 
 class UILogHandler(logging.Handler):
@@ -72,8 +72,8 @@ class AppPrincipal(ctk.CTk):
         self.frame_top.grid_columnconfigure(0, weight=3, uniform="top_cols") # Ocupa 3/5
         self.frame_top.grid_columnconfigure(1, weight=2, uniform="top_cols") # Ocupa 2/5
         
-        # --- Bloque 1A: Configuración de Puertos ---
-        self.frame_config = ContenedorConTitulo(self.frame_top, titulo="Configuración de Puertos")
+        # --- Bloque 1A: Configuración ---
+        self.frame_config = ContenedorConTitulo(self.frame_top, titulo="Configuración")
         self.frame_config.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
         
         self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Banco de Caudal", font=("Inter", 14), text_color="#FFFFFF")
@@ -98,6 +98,12 @@ class AppPrincipal(ctk.CTk):
         
         self.btn_refrescar = ctk.CTkButton(self.frame_config, text="🔄", width=40, font=("Inter", 18), fg_color="#1976D2", hover_color="#2196F3", command=self.refrescar_hardware)
         self.btn_refrescar.grid(row=0, column=6, padx=(10, 15), pady=(45, 15))
+        
+        self.btn_carpeta = ctk.CTkButton(self.frame_config, text="📁", width=40, font=("Inter", 18), fg_color="#455A64", hover_color="#607D8B", command=self.cambiar_carpeta_ensayos)
+        self.btn_carpeta.grid(row=0, column=7, padx=(0, 15), pady=(45, 15))
+        
+        # Tooltip para mostrar la ruta actual
+        ToolTip(self.btn_carpeta, lambda: f"Ruta actual:\n{self.gestor.carpeta_base}")
         
         # --- Bloque 1B: Advertencias ---
         self.frame_adv = ContenedorConTitulo(self.frame_top, titulo="Advertencias")
@@ -284,6 +290,13 @@ class AppPrincipal(ctk.CTk):
             if hasattr(self, 'var_advertencia'):
                 self.var_advertencia.set(mensaje)
         self.after(0, update)
+
+    def cambiar_carpeta_ensayos(self):
+        """Abre un diálogo para seleccionar la nueva ruta de ensayos."""
+        nueva_ruta = filedialog.askdirectory(title="Seleccionar carpeta de ensayos", initialdir=str(self.gestor.carpeta_base))
+        if nueva_ruta:
+            self.gestor.cambiar_ruta_base(nueva_ruta)
+            logger.info(f"Ruta de ensayos actualizada por el usuario a: {nueva_ruta}")
 
     # --- Lógica de Terminal ---
     def _on_terminal_data(self, direccion: str, datos: bytes):
