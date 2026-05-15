@@ -2,7 +2,7 @@ import customtkinter as ctk
 import logging
 import time
 from typing import Optional
-from ui.componentes_ui import IndicadorConexion, PanelImagenes
+from ui.componentes_ui import IndicadorConexion, PanelImagenes, ContenedorConTitulo
 from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
@@ -45,132 +45,151 @@ class AppPrincipal(ctk.CTk):
         self.monitorear_estado()
 
     def construir_ui(self):
-        # --- Frame Configuración ---
-        self.frame_config = ctk.CTkFrame(self)
-        self.frame_config.pack(padx=20, pady=10, fill="x")
+        self.configure(fg_color="#242424")
         
-        self.lbl_titulo_config = ctk.CTkLabel(self.frame_config, text="Configuración de Puertos", font=("Inter", 16, "bold"))
-        self.lbl_titulo_config.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        # --- Bloque 1: Configuración de Puertos ---
+        self.frame_config = ContenedorConTitulo(self, titulo="Configuración de Puertos")
+        self.frame_config.pack(padx=20, pady=(15, 5), fill="x")
         
-        self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Puerto Banco de Caudal:")
-        self.lbl_banco.grid(row=1, column=0, padx=(10, 5), pady=5)
-        self.cmb_puertos = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], command=self.cambiar_puerto_serie)
-        self.cmb_puertos.grid(row=1, column=1, padx=(0, 10), pady=5)
+        self.lbl_banco = ctk.CTkLabel(self.frame_config, text="Banco de Caudal", font=("Inter", 14), text_color="#FFFFFF")
+        self.lbl_banco.grid(row=0, column=0, padx=(15, 5), pady=15, sticky="w")
         
-        self.lbl_camara = ctk.CTkLabel(self.frame_config, text="Puerto Cámara:")
-        self.lbl_camara.grid(row=1, column=2, padx=(10, 5), pady=5)
-        self.cmb_camaras = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], command=self.cambiar_camara)
-        self.cmb_camaras.grid(row=1, column=3, padx=(0, 10), pady=5)
+        self.cmb_puertos = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], fg_color="#D3D3D3", text_color="#000000")
+        self.cmb_puertos.configure(command=self.cambiar_puerto_serie)
+        self.cmb_puertos.grid(row=0, column=1, padx=(0, 10), pady=15)
         
-        self.btn_refrescar = ctk.CTkButton(self.frame_config, text="Actualizar Dispositivos", command=self.refrescar_hardware, width=150)
-        self.btn_refrescar.grid(row=1, column=4, padx=10, pady=5)
+        self.ind_banco = IndicadorConexion(self.frame_config, "")
+        self.ind_banco.grid(row=0, column=2, padx=(0, 20), pady=15)
         
-        self.ind_banco = IndicadorConexion(self.frame_config, "Conexión Banco")
-        self.ind_banco.grid(row=1, column=5, padx=20, pady=5)
+        self.lbl_camara = ctk.CTkLabel(self.frame_config, text="Cámara", font=("Inter", 14), text_color="#FFFFFF")
+        self.lbl_camara.grid(row=0, column=3, padx=(20, 5), pady=15, sticky="w")
         
-        self.ind_camara = IndicadorConexion(self.frame_config, "Conexión Cámara")
-        self.ind_camara.grid(row=1, column=6, padx=20, pady=5)
-
-        # --- Contenedor Medio ---
-        self.frame_medio = ctk.CTkFrame(self, fg_color="transparent")
-        self.frame_medio.pack(padx=20, pady=10, fill="x")
-        self.frame_medio.grid_columnconfigure(0, weight=1)
-        self.frame_medio.grid_columnconfigure(1, weight=1)
-
-        # Parámetros Ensayo
-        self.frame_params = ctk.CTkFrame(self.frame_medio)
-        self.frame_params.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
+        self.cmb_camaras = ctk.CTkComboBox(self.frame_config, values=["Buscando..."], fg_color="#D3D3D3", text_color="#000000")
+        self.cmb_camaras.configure(command=self.cambiar_camara)
+        self.cmb_camaras.grid(row=0, column=4, padx=(0, 10), pady=15)
         
-        ctk.CTkLabel(self.frame_params, text="Parámetros Ensayo", font=("Inter", 16, "bold")).pack(pady=5)
+        self.ind_camara = IndicadorConexion(self.frame_config, "")
+        self.ind_camara.grid(row=0, column=5, padx=(0, 20), pady=15)
         
-        frame_duracion = ctk.CTkFrame(self.frame_params, fg_color="transparent")
-        frame_duracion.pack(pady=5, fill="x", padx=10)
-        ctk.CTkLabel(frame_duracion, text="Duración Ensayo (s):").pack(side="left")
-        self.ent_duracion = ctk.CTkEntry(frame_duracion)
-        self.ent_duracion.insert(0, str(DURACION_ENSAYO_POR_DEFECTO_S))
-        self.ent_duracion.pack(side="right")
-        
-        frame_densidad = ctk.CTkFrame(self.frame_params, fg_color="transparent")
-        frame_densidad.pack(pady=5, fill="x", padx=10)
-        ctk.CTkLabel(frame_densidad, text="Densidad (kg/m³):").pack(side="left")
-        self.ent_densidad = ctk.CTkEntry(frame_densidad)
-        self.ent_densidad.insert(0, "998.0")
-        self.ent_densidad.pack(side="right")
-
-        self.btn_iniciar = ctk.CTkButton(self.frame_params, text="Iniciar Ensayo", command=self.iniciar_ensayo, height=40, font=("Inter", 16, "bold"), fg_color="#2c6b3c", hover_color="#3b8c4f")
-        self.btn_iniciar.pack(pady=15, padx=20, fill="x")
-
-        # Resultados y Botones Operativos
-        self.frame_resultados = ctk.CTkFrame(self.frame_medio)
-        self.frame_resultados.grid(row=0, column=1, padx=(10, 0), sticky="nsew")
-        
-        ctk.CTkLabel(self.frame_resultados, text="Mediciones y Resultados", font=("Inter", 16, "bold")).grid(row=0, column=0, columnspan=2, pady=5)
-        
-        # Botones para mediciones manuales
-        frame_botones_med = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
-        frame_botones_med.grid(row=1, column=0, columnspan=2, pady=5)
-        self.btn_peso_ini = ctk.CTkButton(frame_botones_med, text="Tomar Peso Inicial", command=self.tomar_peso_inicial)
-        self.btn_peso_ini.grid(row=0, column=0, padx=5, pady=5)
-        self.btn_peso_fin = ctk.CTkButton(frame_botones_med, text="Tomar Peso Final", command=self.tomar_peso_final)
-        self.btn_peso_fin.grid(row=0, column=1, padx=5, pady=5)
-        self.btn_calcular = ctk.CTkButton(frame_botones_med, text="Calcular Caudal", command=self.calcular_caudales)
-        self.btn_calcular.grid(row=0, column=2, padx=5, pady=5)
-        
-        self.btn_ini_retorno = ctk.CTkButton(frame_botones_med, text="Iniciar Retorno", command=self.iniciar_retorno, fg_color="#b8860b", hover_color="#daa520")
-        self.btn_ini_retorno.grid(row=1, column=0, padx=5, pady=5)
-        self.btn_fin_retorno = ctk.CTkButton(frame_botones_med, text="Finalizar Retorno", command=self.finalizar_retorno, fg_color="#a52a2a", hover_color="#cd5c5c", state="disabled")
-        self.btn_fin_retorno.grid(row=1, column=1, padx=5, pady=5)
+        self.btn_refrescar = ctk.CTkButton(self.frame_config, text="🔄", width=40, font=("Inter", 18), fg_color="#1976D2", hover_color="#2196F3", command=self.refrescar_hardware)
+        self.btn_refrescar.grid(row=0, column=6, padx=(10, 15), pady=15)
 
         # Variables para mostrar resultados
-        self.var_tiempo = ctk.StringVar(value="Tiempo: 0.0 s")
-        self.var_peso_ini = ctk.StringVar(value="Peso Inicial: ---")
-        self.var_peso_fin = ctk.StringVar(value="Peso Final: ---")
-        self.var_peso_neto = ctk.StringVar(value="Peso Neto: ---")
-        self.var_c_masico = ctk.StringVar(value="C. Másico: ---")
-        self.var_c_volumetrico = ctk.StringVar(value="C. Volumétrico: ---")
+        self.var_tiempo = ctk.StringVar(value="0.00")
+        self.var_peso_ini = ctk.StringVar(value="---")
+        self.var_peso_fin = ctk.StringVar(value="---")
+        self.var_peso_neto = ctk.StringVar(value="---")
+        self.var_c_masico = ctk.StringVar(value="---")
+        self.var_c_volumetrico = ctk.StringVar(value="---")
 
-        # Grilla de resultados
-        row_res = 2
-        for var in [self.var_tiempo, self.var_peso_ini, self.var_peso_fin, 
-                    self.var_peso_neto, self.var_c_masico, self.var_c_volumetrico]:
-            ctk.CTkLabel(self.frame_resultados, textvariable=var, font=("Inter", 14)).grid(row=row_res, column=0, columnspan=2, pady=2, sticky="w", padx=20)
-            row_res += 1
-
-        # --- Frame Terminal Serial ---
-        self.frame_terminal = ctk.CTkFrame(self)
-        self.frame_terminal.pack(padx=20, pady=10, fill="x")
+        # --- Bloque 2: Panel Central ---
+        self.frame_medio = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_medio.pack(padx=20, pady=5, fill="x")
+        self.frame_medio.grid_columnconfigure(0, weight=4)
+        self.frame_medio.grid_columnconfigure(1, weight=3)
+        self.frame_medio.grid_columnconfigure(2, weight=3)
         
-        lbl_term = ctk.CTkLabel(self.frame_terminal, text="Terminal Serial (USB COM)", font=("Inter", 14, "bold"))
-        lbl_term.pack(anchor="w", padx=10, pady=(5, 0))
+        # Columna 1: Controles de Ensayo
+        self.frame_controles = ctk.CTkFrame(self.frame_medio, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8)
+        self.frame_controles.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
+        
+        frame_inputs = ctk.CTkFrame(self.frame_controles, fg_color="transparent")
+        frame_inputs.pack(padx=15, pady=(15, 10), fill="x")
+        frame_inputs.grid_columnconfigure(0, weight=1)
+        frame_inputs.grid_columnconfigure(1, weight=1)
+        
+        lbl_dur = ctk.CTkLabel(frame_inputs, text="Duración Ensayo [s]", text_color="#FFFFFF")
+        lbl_dur.grid(row=0, column=0, sticky="w")
+        self.ent_duracion = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000")
+        self.ent_duracion.insert(0, str(DURACION_ENSAYO_POR_DEFECTO_S))
+        self.ent_duracion.grid(row=1, column=0, padx=(0, 5), sticky="ew")
+        
+        lbl_den = ctk.CTkLabel(frame_inputs, text="Densidad del Fluido [kg/m³]", text_color="#FFFFFF")
+        lbl_den.grid(row=0, column=1, sticky="w")
+        self.ent_densidad = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000")
+        self.ent_densidad.insert(0, "998.0")
+        self.ent_densidad.grid(row=1, column=1, padx=(5, 0), sticky="ew")
+        
+        self.btn_iniciar = ctk.CTkButton(self.frame_controles, text="Iniciar Ensayo", command=self.iniciar_ensayo, height=40, font=("Inter", 16, "bold"), fg_color="#388E3C", hover_color="#4CAF50")
+        self.btn_iniciar.pack(pady=10, padx=15, fill="x")
+        
+        frame_retornos = ctk.CTkFrame(self.frame_controles, fg_color="transparent")
+        frame_retornos.pack(padx=15, pady=(5, 15), fill="x")
+        frame_retornos.grid_columnconfigure(0, weight=1)
+        frame_retornos.grid_columnconfigure(1, weight=1)
+        
+        self.btn_ini_retorno = ctk.CTkButton(frame_retornos, text="Iniciar Retorno", command=self.iniciar_retorno, fg_color="#F57C00", hover_color="#FFB300", text_color="#FFFFFF", height=35)
+        self.btn_ini_retorno.grid(row=0, column=0, padx=(0, 5), sticky="ew")
+        self.btn_fin_retorno = ctk.CTkButton(frame_retornos, text="Finalizar Retorno", command=self.finalizar_retorno, fg_color="#D32F2F", hover_color="#F44336", text_color="#FFFFFF", height=35, state="disabled")
+        self.btn_fin_retorno.grid(row=0, column=1, padx=(5, 0), sticky="ew")
+        
+        # Columna 2: Mediciones
+        self.frame_mediciones = ContenedorConTitulo(self.frame_medio, titulo="Mediciones")
+        self.frame_mediciones.grid(row=0, column=1, padx=(5, 5), sticky="nsew")
+        
+        self.frame_med_inner = ctk.CTkFrame(self.frame_mediciones, fg_color="transparent")
+        self.frame_med_inner.pack(padx=15, pady=20, fill="both", expand=True)
+        self.frame_med_inner.grid_columnconfigure(1, weight=1)
+        
+        self.btn_peso_ini = ctk.CTkButton(self.frame_med_inner, text="Peso Inicial [kg]", command=self.tomar_peso_inicial, fg_color="#424242", hover_color="#545454", width=120)
+        self.btn_peso_ini.grid(row=0, column=0, pady=10, sticky="w")
+        ent_peso_ini = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_ini, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
+        ent_peso_ini.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        
+        self.btn_peso_fin = ctk.CTkButton(self.frame_med_inner, text="Peso Final [kg]", command=self.tomar_peso_final, fg_color="#424242", hover_color="#545454", width=120)
+        self.btn_peso_fin.grid(row=1, column=0, pady=10, sticky="w")
+        ent_peso_fin = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_fin, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
+        ent_peso_fin.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+        
+        # Columna 3: Resultados
+        self.frame_resultados = ctk.CTkFrame(self.frame_medio, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8)
+        self.frame_resultados.grid(row=0, column=2, padx=(10, 0), sticky="nsew")
+        
+        self.btn_calcular = ctk.CTkButton(self.frame_resultados, text="Resultados", command=self.calcular_caudales, fg_color="#388E3C", hover_color="#4CAF50", corner_radius=0, font=("Inter", 16, "bold"))
+        self.btn_calcular.pack(fill="x", pady=(0, 10))
+        
+        frame_res_grid = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
+        frame_res_grid.pack(padx=15, pady=5, fill="both", expand=True)
+        frame_res_grid.grid_columnconfigure(1, weight=1)
+        
+        labels_res = ["Tiempo [s]", "Peso Neto [kg]", "Caudal Másico [kg/s]", "Caudal Volumétrico [m³/s]"]
+        vars_res = [self.var_tiempo, self.var_peso_neto, self.var_c_masico, self.var_c_volumetrico]
+        
+        for i, (lbl_txt, var) in enumerate(zip(labels_res, vars_res)):
+            ctk.CTkLabel(frame_res_grid, text=lbl_txt, text_color="#FFFFFF").grid(row=i, column=0, pady=4, sticky="w")
+            ent = ctk.CTkEntry(frame_res_grid, textvariable=var, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
+            ent.grid(row=i, column=1, padx=(10, 0), pady=4, sticky="e")
+
+        # --- Bloque 3: Imágenes del Ensayo ---
+        self.frame_imagenes = ContenedorConTitulo(self, titulo="Imágenes del Ensayo")
+        self.frame_imagenes.pack(padx=20, pady=(5, 5), fill="both", expand=True)
+        self.panel_img = PanelImagenes(self.frame_imagenes)
+        self.panel_img.pack(fill="both", expand=True, padx=10, pady=15)
+
+        # --- Bloque 4: Terminal ---
+        self.frame_terminal = ContenedorConTitulo(self, titulo="Terminal")
+        self.frame_terminal.pack(padx=20, pady=(5, 15), fill="x")
         
         self.txt_terminal = ctk.CTkTextbox(self.frame_terminal, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
-        self.txt_terminal.pack(padx=10, pady=5, fill="x")
+        self.txt_terminal.pack(padx=15, pady=(20, 5), fill="x")
         self.txt_terminal.configure(state="disabled")
         
         frame_envio = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
-        frame_envio.pack(padx=10, pady=5, fill="x")
+        frame_envio.pack(padx=15, pady=(5, 15), fill="x")
         
-        self.ent_comando = ctk.CTkEntry(frame_envio, placeholder_text="Escriba un comando...")
+        self.ent_comando = ctk.CTkEntry(frame_envio, placeholder_text="Escriba un comando...", fg_color="#D3D3D3", text_color="#000000")
         self.ent_comando.pack(side="left", fill="x", expand=True, padx=(0, 5))
-        # Vincular tecla Enter para enviar comando
         self.ent_comando.bind("<Return>", lambda e: self.enviar_comando_manual())
         
-        self.cmb_terminador = ctk.CTkComboBox(frame_envio, values=["\\0 (Null)", "\\n (LF)", "\\r (CR)", "\\r\\n (CRLF)", "Ninguno"], width=120)
+        self.cmb_terminador = ctk.CTkComboBox(frame_envio, values=["\\0 (Null)", "\\n (LF)", "\\r (CR)", "\\r\\n (CRLF)", "Ninguno"], width=120, fg_color="#D3D3D3", text_color="#000000")
         self.cmb_terminador.set("\\0 (Null)")
         self.cmb_terminador.pack(side="left", padx=5)
         
-        self.btn_enviar_cmd = ctk.CTkButton(frame_envio, text="Enviar", command=self.enviar_comando_manual, width=80)
+        self.btn_enviar_cmd = ctk.CTkButton(frame_envio, text="Enviar", command=self.enviar_comando_manual, width=80, fg_color="#1976D2", hover_color="#2196F3")
         self.btn_enviar_cmd.pack(side="left", padx=5)
         
-        self.btn_limpiar_term = ctk.CTkButton(frame_envio, text="Limpiar", command=self.limpiar_terminal, width=80, fg_color="#444444", hover_color="#555555")
+        self.btn_limpiar_term = ctk.CTkButton(frame_envio, text="Limpiar", command=self.limpiar_terminal, width=80, fg_color="#424242", hover_color="#545454")
         self.btn_limpiar_term.pack(side="left", padx=5)
-
-        # --- Panel de Imágenes ---
-        self.frame_imagenes = ctk.CTkFrame(self)
-        self.frame_imagenes.pack(padx=20, pady=10, fill="both", expand=True)
-        ctk.CTkLabel(self.frame_imagenes, text="Secuencia de Imágenes del Ensayo", font=("Inter", 16, "bold")).pack(anchor="w", padx=10, pady=5)
-        self.panel_img = PanelImagenes(self.frame_imagenes)
-        self.panel_img.pack(fill="both", expand=True, padx=10, pady=5)
 
     def inicializar_hardware(self):
         # Cargar cámaras
@@ -298,17 +317,17 @@ class AppPrincipal(ctk.CTk):
                 # Si fue solicitada manualemente para el inicio o fin
                 if hasattr(self, '_esperando_peso_ini') and self._esperando_peso_ini:
                     self.peso_inicial_val = peso
-                    self.var_peso_ini.set(f"Peso Inicial: {peso:.3f} kg")
+                    self.var_peso_ini.set(f"{peso:.2f}")
                     self._esperando_peso_ini = False
                 elif hasattr(self, '_esperando_peso_fin') and self._esperando_peso_fin:
                     self.peso_final_val = peso
-                    self.var_peso_fin.set(f"Peso Final: {peso:.3f} kg")
+                    self.var_peso_fin.set(f"{peso:.2f}")
                     self._esperando_peso_fin = False
                     
             elif comando == "MEDICION RELOJ":
                 # Formato xxxx.xxx
                 tiempo = float(respuesta)
-                self.var_tiempo.set(f"Tiempo: {tiempo:.3f} s")
+                self.var_tiempo.set(f"{tiempo:.2f}")
                 
                 if self.ensayo_en_curso:
                     self._verificar_progreso_ensayo(tiempo)
@@ -317,7 +336,7 @@ class AppPrincipal(ctk.CTk):
                 tiempo_total = float(respuesta)
                 self.tiempo_final_val = tiempo_total
                 # Actualizamos la etiqueta con el tiempo oficial del hardware
-                self.var_tiempo.set(f"Tiempo Total: {tiempo_total:.3f} s")
+                self.var_tiempo.set(f"{tiempo_total:.2f}")
                 self.ensayo_en_curso = False
                 self.btn_iniciar.configure(state="normal")
                 logger.info(f"Ensayo finalizado. Tiempo oficial: {tiempo_total}s")
@@ -401,7 +420,7 @@ class AppPrincipal(ctk.CTk):
         tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio_ensayo_pc
         
         # Actualizar visualmente el tiempo
-        self.var_tiempo.set(f"Tiempo: {tiempo_transcurrido:.3f} s")
+        self.var_tiempo.set(f"{tiempo_transcurrido:.2f}")
         
         # Verificar si hay que tomar foto
         siguiente_objetivo = self.fotos_tomadas * (self.tiempo_ensayo_objetivo / 5.0)
@@ -442,9 +461,9 @@ class AppPrincipal(ctk.CTk):
             c_masico = calcular_caudal_masico(self.peso_inicial_val, self.peso_final_val, self.tiempo_final_val)
             c_vol = calcular_caudal_volumetrico(self.peso_inicial_val, self.peso_final_val, self.tiempo_final_val, densidad)
             
-            self.var_peso_neto.set(f"Peso Neto: {peso_neto:.3f} kg")
-            self.var_c_masico.set(f"C. Másico: {c_masico:.4f} kg/s")
-            self.var_c_volumetrico.set(f"C. Volumétrico: {c_vol:.6f} m³/s")
+            self.var_peso_neto.set(f"{peso_neto:.2f}")
+            self.var_c_masico.set(f"{c_masico:.2f}")
+            self.var_c_volumetrico.set(f"{c_vol:.2f}")
             
             # Guardar reporte
             self.gestor.registrar_dato("Tiempo de ensayo [s]", f"{self.tiempo_final_val:.3f}")

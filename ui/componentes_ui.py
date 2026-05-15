@@ -5,6 +5,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class ContenedorConTitulo(ctk.CTkFrame):
+    def __init__(self, master, titulo: str, **kwargs):
+        super().__init__(master, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8, **kwargs)
+        # Añadir un margen interno superior para dejar lugar al título
+        self.lbl_titulo = ctk.CTkLabel(self, text=titulo, font=("Inter", 16, "bold"), text_color="#FFFFFF")
+        self.lbl_titulo.place(x=15, y=-10) # Truco sencillo para superponer el texto en el borde
+
+
 class IndicadorConexion(ctk.CTkFrame):
     def __init__(self, master, texto: str, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
@@ -35,10 +43,11 @@ class PanelImagenes(ctk.CTkFrame):
             frame_img = ctk.CTkFrame(self, fg_color="transparent")
             frame_img.grid(row=0, column=i, padx=5, pady=5)
             
-            lbl = ctk.CTkLabel(frame_img, text="---", width=120, height=120, corner_radius=8, fg_color="#3b3b3b")
+            # Placeholder gris claro con un ícono unicode de cámara 📷 o simplemente gris
+            lbl = ctk.CTkLabel(frame_img, text="📷", font=("Inter", 40), text_color="#555555", width=120, height=120, corner_radius=8, fg_color="#e0e0e0")
             lbl.pack(pady=(0, 5))
             
-            lbl_texto = ctk.CTkLabel(frame_img, text=f"Imagen {i+1}", font=("Inter", 12))
+            lbl_texto = ctk.CTkLabel(frame_img, text=f"Imagen {i+1}", font=("Inter", 12), text_color="#FFFFFF")
             lbl_texto.pack()
             
             self.labels_imagenes.append(lbl)
