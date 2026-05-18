@@ -31,9 +31,13 @@ else
     echo "[INFO] Dependencias base ya se encuentran instaladas."
 fi
 
-# 2. Crear entorno virtual
+# Obtener directorio raíz del script (donde está el instalador)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# 2. Crear entorno virtual dentro de software
 echo ""
 echo "[INFO] Creando entorno virtual aislado (venv)..."
+cd "$SCRIPT_DIR/software"
 python3 -m venv venv
 
 # 3. Activar e instalar requerimientos
@@ -42,14 +46,15 @@ echo "[INFO] Instalando requerimientos (esto puede demorar unos minutos)..."
 source venv/bin/activate
 python3 -m pip install --upgrade pip
 pip install -r requerimientos.txt
+cd "$SCRIPT_DIR"
 
-# 4. Crear lanzador de inicio rápido
+# 4. Crear lanzador de inicio rápido en la raíz
 echo ""
 echo "[INFO] Creando archivo de inicio rapido 'BC-Linux.sh'..."
-cat << 'EOF' > BC-Linux.sh
+cat << EOF > BC-Linux.sh
 #!/bin/bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-cd "$DIR"
+DIR="\$( cd "\$( dirname "\${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd "\$DIR/software"
 source venv/bin/activate
 python3 main.py
 EOF
@@ -59,6 +64,6 @@ echo ""
 echo "=============================================="
 echo "  Instalacion completada con exito."
 echo "=============================================="
-echo "Ya puede abrir el programa haciendo doble clic o ejecutando desde la terminal el archivo './BC-Linux.sh' que se acaba de crear."
+echo "Ya puede abrir el programa haciendo doble clic o ejecutando './BC-Linux.sh'."
 echo ""
 read -p "Presione [Enter] para salir..."

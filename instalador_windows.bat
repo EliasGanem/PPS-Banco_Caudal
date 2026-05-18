@@ -38,9 +38,10 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: 3. Crear entorno virtual
+:: 3. Crear entorno virtual dentro de software
 echo.
 echo [INFO] Creando entorno virtual aislado (venv)...
+cd software
 python -m venv venv
 
 :: 4. Activar e instalar dependencias
@@ -49,13 +50,15 @@ echo.
 call venv\Scripts\activate.bat
 python -m pip install --upgrade pip
 pip install -r requerimientos.txt
+cd ..
 
-:: 5. Crear lanzador de inicio rapido
+:: 5. Crear lanzador de inicio rapido en la raiz
 echo.
 echo [INFO] Creando archivo de inicio rapido "BC-Windows.bat"...
 (
 echo @echo off
 echo echo Iniciando Software del Banco de Caudal...
+echo cd software
 echo call venv\Scripts\activate.bat
 echo start python main.py
 echo exit
