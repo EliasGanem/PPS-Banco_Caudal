@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Forzar ejecucion en una ventana de terminal si se hizo doble clic
+if [ ! -t 0 ]; then
+    for term in x-terminal-emulator gnome-terminal konsole xterm; do
+        if command -v "$term" >/dev/null 2>&1; then
+            if [ "$term" = "gnome-terminal" ]; then
+                "$term" -- bash -c "$0; exec bash"
+            else
+                "$term" -e bash -c "$0; exec bash"
+            fi
+            exit 0
+        fi
+    done
+fi
+
 echo "=============================================="
 echo "  Instalador de Software - Banco de Caudal"
 echo "=============================================="
@@ -23,6 +37,7 @@ echo "[INFO] Creando entorno virtual aislado (venv)..."
 python3 -m venv venv
 
 # 3. Activar e instalar requerimientos
+echo ""
 echo "[INFO] Instalando requerimientos (esto puede demorar unos minutos)..."
 source venv/bin/activate
 python3 -m pip install --upgrade pip
