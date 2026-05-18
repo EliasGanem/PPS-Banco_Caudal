@@ -52,19 +52,19 @@ pip install -r requerimientos.txt
 
 :: 5. Crear lanzador de inicio rapido
 echo.
-echo [INFO] Creando archivo de inicio rapido "iniciar_banco.bat"...
+echo [INFO] Creando archivo de inicio rapido "BC-Windows.bat"...
 (
 echo @echo off
 echo echo Iniciando Software del Banco de Caudal...
 echo call venv\Scripts\activate.bat
 echo start python main.py
 echo exit
-) > iniciar_banco.bat
+) > BC-Windows.bat
 
 echo.
 echo ==============================================
 echo   Instalacion completada con exito.
 echo ==============================================
-echo Ya puede abrir el programa haciendo doble clic en "iniciar_banco.bat".
+echo Ya puede abrir el programa haciendo doble clic en "BC-Windows.bat".
 echo.
 pause

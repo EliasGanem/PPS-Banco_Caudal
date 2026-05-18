@@ -45,20 +45,20 @@ pip install -r requerimientos.txt
 
 # 4. Crear lanzador de inicio rápido
 echo ""
-echo "[INFO] Creando archivo de inicio rapido 'iniciar_banco.sh'..."
-cat << 'EOF' > iniciar_banco.sh
+echo "[INFO] Creando archivo de inicio rapido 'BC-Linux.sh'..."
+cat << 'EOF' > BC-Linux.sh
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd "$DIR"
 source venv/bin/activate
 python3 main.py
 EOF
-chmod +x iniciar_banco.sh
+chmod +x BC-Linux.sh
 
 echo ""
 echo "=============================================="
 echo "  Instalacion completada con exito."
 echo "=============================================="
-echo "Ya puede abrir el programa haciendo doble clic o ejecutando desde la terminal el archivo './iniciar_banco.sh' que se acaba de crear."
+echo "Ya puede abrir el programa haciendo doble clic o ejecutando desde la terminal el archivo './BC-Linux.sh' que se acaba de crear."
 echo ""
 read -p "Presione [Enter] para salir..."
