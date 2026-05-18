@@ -174,4 +174,8 @@ Se debe tener un parámetro de densidad que será ingresado por el usuario en la
 
 15. Para iniciar un ensayo se debe tener el valor de peso inicial, ya sea porque se presionó el botón de peso inicial o porque se ingresó manualmente. En caso de iniciar otro ensayo se tiene que volver a ingresar el valor de peso inicial, ya sea se presionando el boton peso inicial o ingresandolo manualmente. 
 
-16. Solo se puede iniciar un ensayo despues de otro luego de haber presionado el boton de Resultados. Una vez presionado se borra el valor de peso inicial indicando que se debe actualizar, ya sea pidiendolo al banco de caudal o manualmente. 
+16. Solo se puede iniciar un ensayo despues de otro luego de haber presionado el boton de Resultados. Una vez presionado se borra el valor de peso inicial indicando que se debe actualizar, ya sea pidiendolo al banco de caudal o manualmente.
+
+17. Si el peso final obtenido al finalizar el ensayo es mayor a un valor de peso maximo (que es una macro que se cambia desde el codigo) no se puede volver a iniciar el ensayo.
+
+18. No se puede presionar el boton iniciar retorno si se se está ensayando. Y no se puede presionar el boton iniciar ensayo si se está en retorno. 

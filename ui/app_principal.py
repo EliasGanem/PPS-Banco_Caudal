@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 DURACION_ENSAYO_POR_DEFECTO_S = 10.0
 PERIODO_POLLING_RETORNO_MS = 1000
 PESO_MINIMO_RETORNO_KG = 5.0
+PESO_MAXIMO_TANQUE_KG = 220.0
 PASSWORD_TERMINAL = "1234"
 
 class AppPrincipal(ctk.CTk):
@@ -125,7 +126,7 @@ class AppPrincipal(ctk.CTk):
         self.lbl_advertencia.pack(padx=15, pady=(45, 15), anchor="w")
 
         # Variables para mostrar resultados
-        self.var_tiempo = ctk.StringVar(value="0.00")
+        self.var_tiempo = ctk.StringVar(value="0.000")
         self.var_peso_ini = ctk.StringVar(value="---")
         self.var_peso_fin = ctk.StringVar(value="---")
         self.var_peso_neto = ctk.StringVar(value="---")
@@ -462,6 +463,7 @@ class AppPrincipal(ctk.CTk):
                 self.ensayo_en_curso = False
                 self.pendiente_resultados = True
                 self.btn_iniciar.configure(state="normal")
+                self.btn_ini_retorno.configure(state="normal")
             # Si no hay respuesta (timeout o desconexión), liberamos estados
             if hasattr(self, '_esperando_peso_ini'): self._esperando_peso_ini = False
             if hasattr(self, '_esperando_peso_fin'): self._esperando_peso_fin = False
@@ -489,7 +491,7 @@ class AppPrincipal(ctk.CTk):
             elif comando == "MEDICION RELOJ":
                 # Formato xxxx.xxx
                 tiempo = float(respuesta)
-                self.var_tiempo.set(f"{tiempo:.2f}")
+                self.var_tiempo.set(f"{tiempo:.3f}")
                 
                 if self.ensayo_en_curso:
                     self._verificar_progreso_ensayo(tiempo)
@@ -498,10 +500,11 @@ class AppPrincipal(ctk.CTk):
                 tiempo_total = float(respuesta)
                 self.tiempo_final_val = tiempo_total
                 # Actualizamos la etiqueta con el tiempo oficial del hardware
-                self.var_tiempo.set(f"{tiempo_total:.2f}")
+                self.var_tiempo.set(f"{tiempo_total:.3f}")
                 self.ensayo_en_curso = False
                 self.pendiente_resultados = True
                 self.btn_iniciar.configure(state="normal")
+                self.btn_ini_retorno.configure(state="normal")
                 logger.info(f"Ensayo finalizado. Tiempo oficial: {tiempo_total}s")
                 
         except ValueError:
@@ -520,6 +523,7 @@ class AppPrincipal(ctk.CTk):
     def iniciar_retorno(self):
         if self.ensayo_en_curso or self.retorno_en_curso: return
         self.retorno_en_curso = True
+        self.btn_iniciar.configure(state="disabled")
         self.btn_ini_retorno.configure(state="disabled")
         self.btn_fin_retorno.configure(state="normal")
         self.driver_serie.enviar_comando_async("INICIAR RETORNO", espera_respuesta=False)
@@ -543,6 +547,7 @@ class AppPrincipal(ctk.CTk):
     def finalizar_retorno(self):
         if not self.retorno_en_curso: return
         self.retorno_en_curso = False
+        self.btn_iniciar.configure(state="normal")
         self.btn_ini_retorno.configure(state="normal")
         self.btn_fin_retorno.configure(state="disabled")
         self.driver_serie.enviar_comando_async("FINALIZAR RETORNO", espera_respuesta=False)
@@ -550,6 +555,10 @@ class AppPrincipal(ctk.CTk):
     def iniciar_ensayo(self):
         if getattr(self, 'pendiente_resultados', False):
             self._mostrar_advertencia("Debe calcular los resultados del ensayo anterior antes de iniciar uno nuevo.")
+            return
+
+        if self.retorno_en_curso:
+            self._mostrar_advertencia("No se puede iniciar el ensayo mientras el retorno está en curso.")
             return
 
         if not self.var_modo_peso_ini.get(): # Modo Manual
@@ -567,6 +576,10 @@ class AppPrincipal(ctk.CTk):
             # Aquí idealmente se mostraría un popup, pero registramos en log.
             return
             
+        if self.peso_inicial_val >= PESO_MAXIMO_TANQUE_KG:
+            self._mostrar_advertencia(f"El tanque superó la capacidad máxima ({PESO_MAXIMO_TANQUE_KG}kg). Debe vaciarlo usando Retorno.")
+            return
+            
         try:
             self.tiempo_ensayo_objetivo = float(self.ent_duracion.get())
             densidad = float(self.ent_densidad.get())
@@ -580,6 +593,7 @@ class AppPrincipal(ctk.CTk):
         self.fotos_tomadas = 0
         self.panel_img.reiniciar_panel()
         self.btn_iniciar.configure(state="disabled")
+        self.btn_ini_retorno.configure(state="disabled")
         
         # Limpiar resultados visuales del ensayo anterior
         self.peso_final_val = None
@@ -588,7 +602,7 @@ class AppPrincipal(ctk.CTk):
         self.var_peso_neto.set("---")
         self.var_c_masico.set("---")
         self.var_c_volumetrico.set("---")
-        self.var_tiempo.set("0.00")
+        self.var_tiempo.set("0.000")
         
         self.gestor.iniciar_nuevo_ensayo()
         self.driver_serie.enviar_comando_async("INICIAR ENSAYO", espera_respuesta=False)
@@ -606,7 +620,7 @@ class AppPrincipal(ctk.CTk):
         tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio_ensayo_pc
         
         # Actualizar visualmente el tiempo
-        self.var_tiempo.set(f"{tiempo_transcurrido:.2f}")
+        self.var_tiempo.set(f"{tiempo_transcurrido:.3f}")
         
         # Verificar si hay que tomar foto
         siguiente_objetivo = self.fotos_tomadas * (self.tiempo_ensayo_objetivo / 5.0)
