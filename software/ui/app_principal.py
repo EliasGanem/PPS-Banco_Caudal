@@ -8,7 +8,7 @@ from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
 from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
-from config import DURACION_ENSAYO_POR_DEFECTO_S, PERIODO_POLLING_RETORNO_MS, PESO_MINIMO_RETORNO_KG, PESO_MAXIMO_TANQUE_KG, PASSWORD_TERMINAL
+from config import DURACION_ENSAYO_POR_DEFECTO_S, PERIODO_MEDICION_BALANZA_RETORNO_MS, PESO_MINIMO_RETORNO_KG, PESO_MAXIMO_TANQUE_KG, CONTRASENIA_TERMINAL
 
 class UILogHandler(logging.Handler):
     def __init__(self, callback):
@@ -363,7 +363,7 @@ class AppPrincipal(ctk.CTk):
 
     def _desbloquear_terminal(self):
         pwd = self.ent_pass.get()
-        if pwd == PASSWORD_TERMINAL:
+        if pwd == CONTRASENIA_TERMINAL:
             self.frame_auth.pack_forget()
             self.ent_pass.delete(0, "end")
             self.frame_term_content.pack(fill="x", padx=15, pady=(45, 15))
@@ -526,7 +526,7 @@ class AppPrincipal(ctk.CTk):
     def _polling_retorno(self):
         if self.retorno_en_curso:
             if getattr(self, '_poll_balanza_activo', False):
-                self.after(PERIODO_POLLING_RETORNO_MS, self._polling_retorno)
+                self.after(PERIODO_MEDICION_BALANZA_RETORNO_MS, self._polling_retorno)
                 return
                 
             self._poll_balanza_activo = True
@@ -536,7 +536,7 @@ class AppPrincipal(ctk.CTk):
                 self.procesar_respuesta_serie(cmd, resp)
                 
             self.driver_serie.enviar_comando_async("MEDICION BALANZA", callback=callback_interno)
-            self.after(PERIODO_POLLING_RETORNO_MS, self._polling_retorno)
+            self.after(PERIODO_MEDICION_BALANZA_RETORNO_MS, self._polling_retorno)
 
     def finalizar_retorno(self):
         if not self.retorno_en_curso: return
