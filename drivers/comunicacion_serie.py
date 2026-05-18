@@ -13,13 +13,13 @@ TIME_OUT_USB = 0.5      # Tiempo en segundos
 BAUDRATE_USB = 115200
 
 class ComunicacionSerie:
-    def __init__(self, vid_defecto: str = "2341", pid_defecto: str = "0043"):
+    def __init__(self, vid_defecto: str = "1A86", pid_defecto: str = "55D4"):
         """
         Inicializa el driver de comunicación serie.
         
         Args:
-            vid_defecto: Vendor ID por defecto para autodetectar (ej. "2341" para Arduino).
-            pid_defecto: Product ID por defecto para autodetectar (ej. "0043" para Arduino Uno).
+            vid_defecto: Vendor ID por defecto para autodetectar (ej. "1A86" para WCH/CH340).
+            pid_defecto: Product ID por defecto para autodetectar (ej. "55D4" para CH340/CH9102).
         """
         self.vid_defecto = vid_defecto
         self.pid_defecto = pid_defecto

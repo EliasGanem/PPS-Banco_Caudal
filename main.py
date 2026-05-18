@@ -21,8 +21,8 @@ def main():
     logger.info("Iniciando aplicación de Banco de Caudal...")
     
     # Valores parametrizables
-    VID_DEFECTO = "2341" # Arduino vendor ID default (configurable por diseñadores)
-    PID_DEFECTO = "0043" # Arduino Uno PID default
+    VID_DEFECTO = "1A86" # WCH/QinHeng vendor ID (CH340/CH9102)
+    PID_DEFECTO = "55D4" # Product ID del adaptador USB-Serie del banco
     
     # Inyección de dependencias
     driver_serie = ComunicacionSerie(vid_defecto=VID_DEFECTO, pid_defecto=PID_DEFECTO)
