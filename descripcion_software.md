@@ -179,3 +179,7 @@ Se debe tener un parámetro de densidad que será ingresado por el usuario en la
 17. Si el peso final obtenido al finalizar el ensayo es mayor a un valor de peso maximo (que es una macro que se cambia desde el codigo) no se puede volver a iniciar el ensayo.
 
 18. No se puede presionar el boton iniciar retorno si se se está ensayando. Y no se puede presionar el boton iniciar ensayo si se está en retorno. 
+
+19. Cantidad de decimales que se muestran en los cuadros numericos para:
+    - Pesos: 2 decimales
+    - Tiempo: 3 decimales
