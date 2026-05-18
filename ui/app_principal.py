@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 DURACION_ENSAYO_POR_DEFECTO_S = 10.0
 PERIODO_POLLING_RETORNO_MS = 1000
 PESO_MINIMO_RETORNO_KG = 5.0
+PASSWORD_TERMINAL = "1234"
 
 class AppPrincipal(ctk.CTk):
     def __init__(self, driver_serie: ComunicacionSerie, driver_camara: CamaraUSB, gestor: GestorEnsayo):
@@ -230,12 +231,30 @@ class AppPrincipal(ctk.CTk):
         self.frame_terminal = ContenedorConTitulo(self.main_container, titulo="Terminal")
         self.frame_terminal.pack(padx=20, pady=(5, 15), fill="x")
         
-        self.txt_terminal = ctk.CTkTextbox(self.frame_terminal, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
-        self.txt_terminal.pack(padx=15, pady=(35, 5), fill="x")
+        # Frame de autenticación (Visible por defecto)
+        self.frame_auth = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
+        self.frame_auth.pack(padx=15, pady=(45, 15), fill="x")
+        
+        lbl_auth = ctk.CTkLabel(self.frame_auth, text="Ingrese contraseña:", text_color="#FFFFFF")
+        lbl_auth.pack(side="left", padx=(0, 10))
+        
+        self.ent_pass = ctk.CTkEntry(self.frame_auth, show="*", fg_color="#D3D3D3", text_color="#000000", width=150)
+        self.ent_pass.pack(side="left", padx=(0, 10))
+        self.ent_pass.bind("<Return>", lambda e: self._desbloquear_terminal())
+        
+        self.btn_desbloquear = ctk.CTkButton(self.frame_auth, text="Desbloquear", command=self._desbloquear_terminal, fg_color="#1976D2", hover_color="#2196F3", width=100)
+        self.btn_desbloquear.pack(side="left")
+
+        # Frame de contenido de la terminal (Oculto por defecto)
+        self.frame_term_content = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
+        # No le hacemos pack() aquí para que esté oculto al inicio
+        
+        self.txt_terminal = ctk.CTkTextbox(self.frame_term_content, height=120, fg_color="#1e1e1e", text_color="#d4d4d4", font=("Consolas", 12))
+        self.txt_terminal.pack(pady=(0, 5), fill="x")
         self.txt_terminal.configure(state="disabled")
         
-        frame_envio = ctk.CTkFrame(self.frame_terminal, fg_color="transparent")
-        frame_envio.pack(padx=15, pady=(5, 15), fill="x")
+        frame_envio = ctk.CTkFrame(self.frame_term_content, fg_color="transparent")
+        frame_envio.pack(pady=(5, 0), fill="x")
         
         self.ent_comando = ctk.CTkEntry(frame_envio, placeholder_text="Escriba un comando...", fg_color="#D3D3D3", text_color="#000000")
         self.ent_comando.pack(side="left", fill="x", expand=True, padx=(0, 5))
@@ -250,6 +269,9 @@ class AppPrincipal(ctk.CTk):
         
         self.btn_limpiar_term = ctk.CTkButton(frame_envio, text="Limpiar", command=self.limpiar_terminal, width=80, fg_color="#424242", hover_color="#545454")
         self.btn_limpiar_term.pack(side="left", padx=5)
+
+        self.btn_bloquear = ctk.CTkButton(frame_envio, text="🔒 Bloquear", command=self._bloquear_terminal, width=90, fg_color="#D32F2F", hover_color="#F44336")
+        self.btn_bloquear.pack(side="left", padx=5)
 
     def inicializar_hardware(self):
         # Cargar cámaras
@@ -340,6 +362,23 @@ class AppPrincipal(ctk.CTk):
             return True
         except ValueError:
             return False
+
+    def _desbloquear_terminal(self):
+        pwd = self.ent_pass.get()
+        if pwd == PASSWORD_TERMINAL:
+            self.frame_auth.pack_forget()
+            self.ent_pass.delete(0, "end")
+            self.frame_term_content.pack(fill="x", padx=15, pady=(45, 15))
+            if hasattr(self.frame_terminal, "lbl_titulo"):
+                self.frame_terminal.lbl_titulo.lift()
+            self.txt_terminal.see("end")
+        else:
+            self._mostrar_advertencia("Contraseña incorrecta para desbloquear la terminal.")
+            self.ent_pass.delete(0, "end")
+
+    def _bloquear_terminal(self):
+        self.frame_term_content.pack_forget()
+        self.frame_auth.pack(padx=15, pady=(45, 15), fill="x")
 
     def _mostrar_advertencia(self, mensaje: str):
         # Actualiza el recuadro de advertencias de forma segura

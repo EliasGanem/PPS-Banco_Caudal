@@ -14,6 +14,7 @@ Este código se encarga de controlar por USB COM un banco de caudal, que se util
 - Tipografía: Limpia, sin remates (sans-serif),moderna.
 
 ## Estructura de Contenedores:
+Toda la interfaz gráfica debe estar envuelta en un contenedor con capacidad de desplazamiento (scrollable) para garantizar que los elementos, como la terminal, no queden ocultos ni recortados en monitores con resoluciones más bajas.
 La interfaz está dividida en cuatro bloques horizontales principales. Cada bloque tendrá un fondo de color gris más claro (#2b2b2b) y el título de cada sección está incrustado en la línea superior del marco (estilo fieldset y legend en HTML).
 
 Diseño y Disposición (Layout) por Secciones
@@ -95,6 +96,8 @@ Cuando se inicia el programa se intenta establecer comunicación con el banco de
 
 Al presionar el boton de "iniciar ensayo" se envia el comando "INICIAR ENSAYO" al banco de caudal. La duración del ensayo se obtiene del valor ingresado por el usuario en el recuadro correspondiente, el valor por defecto de la duración del ensayo es de 10 segundos (este valor debe estar parametrizado para los diseñadores puedas modificarlo en el codigo). Para saber cuanto tiempo transcurrió se utiliza el reloj de la computadora. Se debe verificar que  el tiempo transcurrido desde que inicio el ensayo coincida con la duración del ensayo, cuando esto sucede se envía el comando FINALIZAR ENSAYO. Luego de enviar el comando espera a que el banco de caudal le envie la duración del ensayo. Se utiliza este valor para determinar el tiempo final del ensayo y calcular los caudales. 
 
+Visualmente, al iniciar un nuevo ensayo, la aplicación debe borrar cualquier resultado remanente de ensayos previos. Esto implica restablecer los valores de Peso Final, Peso Neto, Caudal Másico y Caudal Volumétrico al valor `"---"`, restablecer el Tiempo a `"0.00"` y reiniciar los recuadros de las imágenes a un estado en blanco.
+
 Al iniciar el ensayo se toma la primera imagen de la camara y las 5 imágenes restantes se toman cada una quinta parte del tiempo de ensayo. Por ejemplo, si el tiempo de ensayo son 25 segundos, las imágenes se tomarán a los 0, 5, 10, 15, 20 y 25 segundos. Estas imagenes se mostraran en orden cronológico en los recuadros correspondientes.
 
 Cuando no se esta ensayando y se presiona el botón "peso inicial" o "peso final" se debe enviar el comando MEDICION BALANZA, luego se espera recibir el valor del peso el cual se debe mostrar en el indicador correspondiente. 
@@ -103,13 +106,15 @@ Una vez finalizado el ensayo se debe calcular el caudal a partir de los datos de
 
 Al precionar el boton "iniciar retorno" se envia el comando "INICIAR RETORNO" al banco de caudal. Cuando esto pasa el programa debe enviar al banco de caudal el comando "MEDICION BALANZA" cada un tiempo configurable con una macro y a partir del valor recibido debe controlar que el peso no sea menor a un valor configurable con una macro. Estas macros son congifurables poer el programador desde el código. Si el valor que devuelve el banco de caudal es menor o igual al valor minimo o si se presiona el boton "finalizar retorno" se debe enviar el comando FINALIZAR RETORNO al banco de caudal.
 
-No se puede presionar "iniciar ensayo" sin antes haber presionado el boton "peso inicial".
+No se puede presionar "iniciar ensayo" sin antes haber presionado el boton "peso inicial" (si está en modo automático) o sin haber escrito un valor numérico válido en el campo correspondiente (si está en modo manual). De la misma manera, para accionar el botón de "Resultados" (calcular los caudales), el software debe comprobar que el usuario haya registrado o tipeado un Peso Final y un Tiempo válidos; si no es así, debe emitir una advertencia.
 
 Se debe tener un selector de puerto para elegir que camara usar. Este selector debe mostrar todas las camaras disponibles. En caso de no tener una camara conectada el programa seguira funcionando sin tomar las fotos. El indicador de camara conectada debe cumplir su funcion.
 
 Aunque la selección del puerto al que esta conectado el banco de caudal es automatico, debe haber un selector para poder elegir otro puerto com en caso de ser necesario. Y debe mostrar que puerto com esta seleccionado. Es decir, al inicio aparece el puerto com que se determino automaticamente, pero se puede hacer click y se debe desplegar una barra con las distintas opciones de puertos para elegir.
 
 Las imagenes se guardarán en una carpeta llamada ensayos_banco_caudal. Las imagenes corrspondientes a cada ensayo se guardan dentro de otras carpeta cuyo nombre es la fecha y hora del ensayo, y estas estaran dentro de la carpeta ensayo_banco_caudal. El nombre de las fotos sera un nuemero segun el orden cronologico en que se tomaron, la primera será la img_1. 
+
+Adicionalmente, la selección de la ruta base donde se crea la carpeta "ensayos_banco_caudal" (manejada mediante el ícono de la carpeta) debe ser persistente a través de los reinicios de la aplicación utilizando un archivo de configuración (`config.json`). De esta forma, el programa recordará la última ruta elegida por el usuario.
 
 Ademas en la carpeta del ensayo debe generarse un archivo .csv con los datos de las mediciones, donde la primera columna tiene el nombre de la variable con sus respectivas unidades y la segunda el valor. Las variables que debe guarfar son:
 - fecha y hora [hh:mm:ss - dd/mm/aaaa]
@@ -164,3 +169,5 @@ Se debe tener un parámetro de densidad que será ingresado por el usuario en la
 12. Los campos numéricos deben validar que los valores ingresados sean números válidos. Por ejemplo, si se intenta ingresar una letra, el campo debe mostrar un error o simplemente no permitir el ingreso de la letra.
 
 13. Cuando se pide de forma automatica el tiempo y no se recibe el valor del banco de caudal el cuadro numerico debe ponerse con --- y debe permitir ingresar el valor de forma manual. 
+
+14. El uso de la terminal debe estar restringido mediante una contraseña. Esta contraseña debe ser configurable desde una macro en el código. Una vez ingresada la contraseña se desplegará la terminal.
