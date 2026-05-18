@@ -59,14 +59,19 @@ class ComunicacionSerie:
                 self.puerto_serial.close()
             
             try:
-                self.puerto_serial = serial.Serial(
-                    port=puerto,
-                    baudrate=BAUDRATE_USB,
-                    bytesize=serial.EIGHTBITS,
-                    parity=serial.PARITY_NONE,
-                    stopbits=serial.STOPBITS_ONE,
-                    timeout= TIME_OUT_USB # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
-                )
+                self.puerto_serial = serial.Serial()
+                self.puerto_serial.port = puerto
+                self.puerto_serial.baudrate = BAUDRATE_USB
+                self.puerto_serial.bytesize = serial.EIGHTBITS
+                self.puerto_serial.parity = serial.PARITY_NONE
+                self.puerto_serial.stopbits = serial.STOPBITS_ONE
+                self.puerto_serial.timeout = TIME_OUT_USB # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
+                
+                # Deshabilitar las señales de control para evitar reinicios en microcontroladores (ESP32/Arduino)
+                self.puerto_serial.dtr = False
+                self.puerto_serial.rts = False
+                
+                self.puerto_serial.open()
                 self._conectado = True
                 logger.info(f"Conectado a puerto serie {puerto}")
                 return True
