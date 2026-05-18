@@ -48,8 +48,8 @@ Diseño y Disposición (Layout) por Secciones
                 - Campos:   
                     - "Peso Inicial [kg]" 
                     - "Peso Final [kg]" 
-        2. Segunda sección horizontal tiene el título “Resultados”, el cual es un botón de acción para calcular los caudales.
-            - Estructura: Una lista de cuatro campos alineados verticalmente a la izquierda. Tienen el título a la izquierda y el valor dentro de un recuadro que es un campo numérico que mostrará el valor de la variable indicada.
+        2. Segunda sección horizontal tiene el título “Resultados”.
+            - Estructura: Una lista de cuatro campos alineados verticalmente a la izquierda. Tienen el título a la izquierda y el valor dentro de un recuadro que es un campo numérico que mostrará el valor de la variable indicada. Debajo de la lista de campos, se ubica un botón de acción con el texto "Calcular" que procesa las ecuaciones y muestra los caudales.
             - Campos: 
                 - "Tiempo [s]” A la derecha de este campo debe haber un slider para seleccionar entre modo manual o automatico.
                 - "Peso Neto [kg]" 

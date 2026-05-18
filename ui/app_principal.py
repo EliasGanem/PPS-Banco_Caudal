@@ -197,14 +197,12 @@ class AppPrincipal(ctk.CTk):
         self.sw_modo_fin.grid(row=1, column=2, padx=(0, 5), pady=10)
         
         # Columna 3: Resultados
-        self.frame_resultados = ctk.CTkFrame(self.frame_medio, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8)
+        self.frame_resultados = ContenedorConTitulo(self.frame_medio, titulo="Resultados")
         self.frame_resultados.grid(row=0, column=2, padx=(10, 0), sticky="nsew")
         
-        self.btn_calcular = ctk.CTkButton(self.frame_resultados, text="Resultados", command=self.calcular_caudales, fg_color="#388E3C", hover_color="#4CAF50", corner_radius=0, font=("Inter", 16, "bold"))
-        self.btn_calcular.pack(fill="x", pady=(0, 10))
-        
         frame_res_grid = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
-        frame_res_grid.pack(padx=15, pady=5, fill="both", expand=True)
+        frame_res_grid.pack(padx=15, pady=(35, 5), fill="both", expand=True)
+        
         frame_res_grid.grid_columnconfigure(1, weight=1)
         frame_res_grid.grid_columnconfigure(2, weight=0)
         
@@ -222,6 +220,9 @@ class AppPrincipal(ctk.CTk):
             ctk.CTkLabel(frame_res_grid, text=lbl_txt, text_color="#FFFFFF").grid(row=i+1, column=0, pady=4, sticky="w")
             ent = ctk.CTkEntry(frame_res_grid, textvariable=var, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
             ent.grid(row=i+1, column=1, padx=(10, 0), pady=4, sticky="e")
+            
+        self.btn_calcular = ctk.CTkButton(self.frame_resultados, text="Calcular", command=self.calcular_caudales, fg_color="#388E3C", hover_color="#4CAF50", font=("Inter", 16, "bold"))
+        self.btn_calcular.pack(fill="x", padx=15, pady=(5, 15))
 
         # --- Bloque 3: Imágenes del Ensayo ---
         self.frame_imagenes = ContenedorConTitulo(self.main_container, titulo="Imágenes del Ensayo")
