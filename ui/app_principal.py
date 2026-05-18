@@ -51,6 +51,8 @@ class AppPrincipal(ctk.CTk):
         self.var_modo_peso_fin = ctk.BooleanVar(value=True)
         self.var_modo_tiempo = ctk.BooleanVar(value=True)
         
+        self.pendiente_resultados = False
+        
         self.construir_ui()
         
         # Configurar interceptor de logs para Advertencias
@@ -457,6 +459,7 @@ class AppPrincipal(ctk.CTk):
                 self.tiempo_final_val = None
                 self._mostrar_advertencia("Timeout recibiendo el tiempo final. Ingrese el tiempo manualmente.")
                 self.ensayo_en_curso = False
+                self.pendiente_resultados = True
                 self.btn_iniciar.configure(state="normal")
             # Si no hay respuesta (timeout o desconexión), liberamos estados
             if hasattr(self, '_esperando_peso_ini'): self._esperando_peso_ini = False
@@ -496,6 +499,7 @@ class AppPrincipal(ctk.CTk):
                 # Actualizamos la etiqueta con el tiempo oficial del hardware
                 self.var_tiempo.set(f"{tiempo_total:.2f}")
                 self.ensayo_en_curso = False
+                self.pendiente_resultados = True
                 self.btn_iniciar.configure(state="normal")
                 logger.info(f"Ensayo finalizado. Tiempo oficial: {tiempo_total}s")
                 
@@ -543,6 +547,10 @@ class AppPrincipal(ctk.CTk):
         self.driver_serie.enviar_comando_async("FINALIZAR RETORNO", espera_respuesta=False)
 
     def iniciar_ensayo(self):
+        if getattr(self, 'pendiente_resultados', False):
+            self._mostrar_advertencia("Debe calcular los resultados del ensayo anterior antes de iniciar uno nuevo.")
+            return
+
         if not self.var_modo_peso_ini.get(): # Modo Manual
             try:
                 peso_str = self.var_peso_ini.get().strip()
@@ -671,6 +679,10 @@ class AppPrincipal(ctk.CTk):
             self.gestor.registrar_dato("Caudal volumétrico [m3/s]", f"{c_vol:.6f}")
             self.gestor.registrar_dato("Densidad [kg/m3]", f"{densidad:.3f}")
             self.gestor.guardar_reporte_csv()
+            
+            self.pendiente_resultados = False
+            self.peso_inicial_val = None
+            self.var_peso_ini.set("---")
             
         except Exception as e:
             logger.error(f"Error calculando caudal: {e}")

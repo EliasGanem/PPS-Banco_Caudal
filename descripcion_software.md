@@ -171,3 +171,7 @@ Se debe tener un parámetro de densidad que será ingresado por el usuario en la
 13. Cuando se pide de forma automatica el tiempo y no se recibe el valor del banco de caudal el cuadro numerico debe ponerse con --- y debe permitir ingresar el valor de forma manual. 
 
 14. El uso de la terminal debe estar restringido mediante una contraseña. Esta contraseña debe ser configurable desde una macro en el código. Una vez ingresada la contraseña se desplegará la terminal.
+
+15. Para iniciar un ensayo se debe tener el valor de peso inicial, ya sea porque se presionó el botón de peso inicial o porque se ingresó manualmente. En caso de iniciar otro ensayo se tiene que volver a ingresar el valor de peso inicial, ya sea se presionando el boton peso inicial o ingresandolo manualmente. 
+
+16. Solo se puede iniciar un ensayo despues de otro luego de haber presionado el boton de Resultados. Una vez presionado se borra el valor de peso inicial indicando que se debe actualizar, ya sea pidiendolo al banco de caudal o manualmente. 
