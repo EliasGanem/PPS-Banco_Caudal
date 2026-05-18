@@ -3,17 +3,12 @@ import serial.tools.list_ports
 import threading
 import logging
 from typing import List, Optional, Callable
+from config import TERMINADOR_RX, TERMINADOR_TX, TIME_OUT_USB, BAUDRATE_USB, VID_DEFECTO, PID_DEFECTO
 
 logger = logging.getLogger(__name__)
 
-# MACROS para terminadores (Modificables desde el código para pruebas)
-TERMINADOR_RX = b'\x00' # Terminador que se espera recibir del banco
-TERMINADOR_TX = b'\x00' # Terminador que se envía por defecto al banco
-TIME_OUT_USB = 0.5      # Tiempo en segundos
-BAUDRATE_USB = 115200
-
 class ComunicacionSerie:
-    def __init__(self, vid_defecto: str = "1A86", pid_defecto: str = "55D4"):
+    def __init__(self, vid_defecto: str = VID_DEFECTO, pid_defecto: str = PID_DEFECTO):
         """
         Inicializa el driver de comunicación serie.
         

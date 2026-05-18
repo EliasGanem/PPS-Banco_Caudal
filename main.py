@@ -4,6 +4,7 @@ from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
 from ui.app_principal import AppPrincipal
+from config import VID_DEFECTO, PID_DEFECTO
 
 def configurar_logging():
     logging.basicConfig(
@@ -19,10 +20,6 @@ def main():
     configurar_logging()
     logger = logging.getLogger("main")
     logger.info("Iniciando aplicación de Banco de Caudal...")
-    
-    # Valores parametrizables
-    VID_DEFECTO = "1A86" # WCH/QinHeng vendor ID (CH340/CH9102)
-    PID_DEFECTO = "55D4" # Product ID del adaptador USB-Serie del banco
     
     # Inyección de dependencias
     driver_serie = ComunicacionSerie(vid_defecto=VID_DEFECTO, pid_defecto=PID_DEFECTO)

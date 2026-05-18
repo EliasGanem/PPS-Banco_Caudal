@@ -8,6 +8,7 @@ from drivers.comunicacion_serie import ComunicacionSerie
 from drivers.camara_usb import CamaraUSB
 from core.gestor_ensayo import GestorEnsayo
 from core.calculador_caudal import calcular_caudal_masico, calcular_caudal_volumetrico
+from config import DURACION_ENSAYO_POR_DEFECTO_S, PERIODO_POLLING_RETORNO_MS, PESO_MINIMO_RETORNO_KG, PESO_MAXIMO_TANQUE_KG, PASSWORD_TERMINAL
 
 class UILogHandler(logging.Handler):
     def __init__(self, callback):
@@ -19,13 +20,6 @@ class UILogHandler(logging.Handler):
             self.callback(msg)
 
 logger = logging.getLogger(__name__)
-
-# Macros configurables para el retorno
-DURACION_ENSAYO_POR_DEFECTO_S = 10.0
-PERIODO_POLLING_RETORNO_MS = 1000
-PESO_MINIMO_RETORNO_KG = 5.0
-PESO_MAXIMO_TANQUE_KG = 220.0
-PASSWORD_TERMINAL = "1234"
 
 class AppPrincipal(ctk.CTk):
     def __init__(self, driver_serie: ComunicacionSerie, driver_camara: CamaraUSB, gestor: GestorEnsayo):
