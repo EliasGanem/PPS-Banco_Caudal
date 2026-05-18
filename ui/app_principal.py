@@ -46,6 +46,10 @@ class AppPrincipal(ctk.CTk):
         self.peso_final_val: Optional[float] = None
         self.tiempo_final_val: Optional[float] = None
         
+        self.var_modo_peso_ini = ctk.BooleanVar(value=True) # True = Auto, False = Manual
+        self.var_modo_peso_fin = ctk.BooleanVar(value=True)
+        self.var_modo_tiempo = ctk.BooleanVar(value=True)
+        
         self.construir_ui()
         
         # Configurar interceptor de logs para Advertencias
@@ -61,6 +65,9 @@ class AppPrincipal(ctk.CTk):
 
     def construir_ui(self):
         self.configure(fg_color="#242424")
+        
+        # Comando de validación para cajas de texto numéricas
+        vcmd = (self.register(self._validar_numero_flotante), '%P')
         
         # Contenedor principal scrolleable para adaptarse a pantallas chicas
         self.main_container = ctk.CTkScrollableFrame(self, fg_color="transparent")
@@ -140,13 +147,13 @@ class AppPrincipal(ctk.CTk):
         
         lbl_dur = ctk.CTkLabel(frame_inputs, text="Duración Ensayo [s]", text_color="#FFFFFF")
         lbl_dur.grid(row=0, column=0, sticky="w")
-        self.ent_duracion = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000")
+        self.ent_duracion = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000", validate="key", validatecommand=vcmd)
         self.ent_duracion.insert(0, str(DURACION_ENSAYO_POR_DEFECTO_S))
         self.ent_duracion.grid(row=1, column=0, padx=(0, 5), sticky="ew")
         
         lbl_den = ctk.CTkLabel(frame_inputs, text="Densidad del Fluido [kg/m³]", text_color="#FFFFFF")
         lbl_den.grid(row=0, column=1, sticky="w")
-        self.ent_densidad = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000")
+        self.ent_densidad = ctk.CTkEntry(frame_inputs, fg_color="#D3D3D3", text_color="#000000", validate="key", validatecommand=vcmd)
         self.ent_densidad.insert(0, "998.0")
         self.ent_densidad.grid(row=1, column=1, padx=(5, 0), sticky="ew")
         
@@ -170,16 +177,21 @@ class AppPrincipal(ctk.CTk):
         self.frame_med_inner = ctk.CTkFrame(self.frame_mediciones, fg_color="transparent")
         self.frame_med_inner.pack(padx=15, pady=(35, 20), fill="both", expand=True)
         self.frame_med_inner.grid_columnconfigure(1, weight=1)
+        self.frame_med_inner.grid_columnconfigure(2, weight=0)
         
         self.btn_peso_ini = ctk.CTkButton(self.frame_med_inner, text="Peso Inicial [kg]", command=self.tomar_peso_inicial, fg_color="#424242", hover_color="#545454", width=120)
         self.btn_peso_ini.grid(row=0, column=0, pady=10, sticky="w")
-        ent_peso_ini = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_ini, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
-        ent_peso_ini.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.ent_peso_ini = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_ini, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80, validate="key", validatecommand=vcmd)
+        self.ent_peso_ini.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.sw_modo_ini = ctk.CTkSwitch(self.frame_med_inner, text="A", command=self._toggle_modo_ini, variable=self.var_modo_peso_ini, progress_color="#388E3C", button_color="#FFFFFF", fg_color="#F57C00")
+        self.sw_modo_ini.grid(row=0, column=2, padx=(0, 5), pady=10)
         
         self.btn_peso_fin = ctk.CTkButton(self.frame_med_inner, text="Peso Final [kg]", command=self.tomar_peso_final, fg_color="#424242", hover_color="#545454", width=120)
         self.btn_peso_fin.grid(row=1, column=0, pady=10, sticky="w")
-        ent_peso_fin = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_fin, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
-        ent_peso_fin.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+        self.ent_peso_fin = ctk.CTkEntry(self.frame_med_inner, textvariable=self.var_peso_fin, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80, validate="key", validatecommand=vcmd)
+        self.ent_peso_fin.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+        self.sw_modo_fin = ctk.CTkSwitch(self.frame_med_inner, text="A", command=self._toggle_modo_fin, variable=self.var_modo_peso_fin, progress_color="#388E3C", button_color="#FFFFFF", fg_color="#F57C00")
+        self.sw_modo_fin.grid(row=1, column=2, padx=(0, 5), pady=10)
         
         # Columna 3: Resultados
         self.frame_resultados = ctk.CTkFrame(self.frame_medio, fg_color="#2b2b2b", border_width=1, border_color="#555555", corner_radius=8)
@@ -191,14 +203,22 @@ class AppPrincipal(ctk.CTk):
         frame_res_grid = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
         frame_res_grid.pack(padx=15, pady=5, fill="both", expand=True)
         frame_res_grid.grid_columnconfigure(1, weight=1)
+        frame_res_grid.grid_columnconfigure(2, weight=0)
         
-        labels_res = ["Tiempo [s]", "Peso Neto [kg]", "Caudal Másico [kg/s]", "Caudal Volumétrico [m³/s]"]
-        vars_res = [self.var_tiempo, self.var_peso_neto, self.var_c_masico, self.var_c_volumetrico]
+        # Tiempo con slider
+        ctk.CTkLabel(frame_res_grid, text="Tiempo [s]", text_color="#FFFFFF").grid(row=0, column=0, pady=4, sticky="w")
+        self.ent_tiempo = ctk.CTkEntry(frame_res_grid, textvariable=self.var_tiempo, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80, validate="key", validatecommand=vcmd)
+        self.ent_tiempo.grid(row=0, column=1, padx=(10, 0), pady=4, sticky="e")
+        self.sw_modo_tiempo = ctk.CTkSwitch(frame_res_grid, text="A", command=self._toggle_modo_tiempo, variable=self.var_modo_tiempo, progress_color="#388E3C", button_color="#FFFFFF", fg_color="#F57C00")
+        self.sw_modo_tiempo.grid(row=0, column=2, padx=(5, 0), pady=4)
+        
+        labels_res = ["Peso Neto [kg]", "Caudal Másico [kg/s]", "Caudal Volumétrico [m³/s]"]
+        vars_res = [self.var_peso_neto, self.var_c_masico, self.var_c_volumetrico]
         
         for i, (lbl_txt, var) in enumerate(zip(labels_res, vars_res)):
-            ctk.CTkLabel(frame_res_grid, text=lbl_txt, text_color="#FFFFFF").grid(row=i, column=0, pady=4, sticky="w")
+            ctk.CTkLabel(frame_res_grid, text=lbl_txt, text_color="#FFFFFF").grid(row=i+1, column=0, pady=4, sticky="w")
             ent = ctk.CTkEntry(frame_res_grid, textvariable=var, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
-            ent.grid(row=i, column=1, padx=(10, 0), pady=4, sticky="e")
+            ent.grid(row=i+1, column=1, padx=(10, 0), pady=4, sticky="e")
 
         # --- Bloque 3: Imágenes del Ensayo ---
         self.frame_imagenes = ContenedorConTitulo(self.main_container, titulo="Imágenes del Ensayo")
@@ -284,6 +304,43 @@ class AppPrincipal(ctk.CTk):
         self.ind_camara.set_estado(self.driver_camara.esta_conectada())
         self.after(500, self.monitorear_estado)
 
+    def _toggle_modo_ini(self):
+        if self.var_modo_peso_ini.get(): # Auto
+            self.sw_modo_ini.configure(text="A")
+            self.ent_peso_ini.configure(state="disabled")
+            self.btn_peso_ini.configure(state="normal")
+        else: # Manual
+            self.sw_modo_ini.configure(text="M")
+            self.ent_peso_ini.configure(state="normal")
+            self.btn_peso_ini.configure(state="disabled")
+
+    def _toggle_modo_fin(self):
+        if self.var_modo_peso_fin.get(): # Auto
+            self.sw_modo_fin.configure(text="A")
+            self.ent_peso_fin.configure(state="disabled")
+            self.btn_peso_fin.configure(state="normal")
+        else: # Manual
+            self.sw_modo_fin.configure(text="M")
+            self.ent_peso_fin.configure(state="normal")
+            self.btn_peso_fin.configure(state="disabled")
+
+    def _toggle_modo_tiempo(self):
+        if self.var_modo_tiempo.get(): # Auto
+            self.sw_modo_tiempo.configure(text="A")
+            self.ent_tiempo.configure(state="disabled")
+        else: # Manual
+            self.sw_modo_tiempo.configure(text="M")
+            self.ent_tiempo.configure(state="normal")
+
+    def _validar_numero_flotante(self, valor_nuevo):
+        if valor_nuevo == "" or valor_nuevo == "-" or valor_nuevo == "---":
+            return True
+        try:
+            float(valor_nuevo)
+            return True
+        except ValueError:
+            return False
+
     def _mostrar_advertencia(self, mensaje: str):
         # Actualiza el recuadro de advertencias de forma segura
         def update():
@@ -354,6 +411,14 @@ class AppPrincipal(ctk.CTk):
 
     def _procesar_respuesta_ui(self, comando: str, respuesta: str):
         if not respuesta:
+            if comando == "FINALIZAR ENSAYO":
+                self.var_modo_tiempo.set(False)
+                self._toggle_modo_tiempo()
+                self.var_tiempo.set("---")
+                self.tiempo_final_val = None
+                self._mostrar_advertencia("Timeout recibiendo el tiempo final. Ingrese el tiempo manualmente.")
+                self.ensayo_en_curso = False
+                self.btn_iniciar.configure(state="normal")
             # Si no hay respuesta (timeout o desconexión), liberamos estados
             if hasattr(self, '_esperando_peso_ini'): self._esperando_peso_ini = False
             if hasattr(self, '_esperando_peso_fin'): self._esperando_peso_fin = False
@@ -439,6 +504,16 @@ class AppPrincipal(ctk.CTk):
         self.driver_serie.enviar_comando_async("FINALIZAR RETORNO", espera_respuesta=False)
 
     def iniciar_ensayo(self):
+        if not self.var_modo_peso_ini.get(): # Modo Manual
+            try:
+                peso_str = self.var_peso_ini.get().strip()
+                if not peso_str or peso_str == "---":
+                    raise ValueError
+                self.peso_inicial_val = float(peso_str)
+            except ValueError:
+                logger.warning("No se puede iniciar ensayo sin peso inicial válido.")
+                return
+
         if self.peso_inicial_val is None:
             logger.warning("No se puede iniciar ensayo sin peso inicial.")
             # Aquí idealmente se mostraría un popup, pero registramos en log.
@@ -514,6 +589,26 @@ class AppPrincipal(ctk.CTk):
         self.driver_camara.tomar_foto(ruta, callback=on_foto_tomada)
 
     def calcular_caudales(self):
+        if not self.var_modo_tiempo.get(): # Modo Manual
+            try:
+                tiempo_str = self.var_tiempo.get().strip()
+                if not tiempo_str or tiempo_str == "---":
+                    raise ValueError
+                self.tiempo_final_val = float(tiempo_str)
+            except ValueError:
+                logger.warning("Faltan datos (tiempo manual) para calcular caudal.")
+                return
+
+        if not self.var_modo_peso_fin.get(): # Modo Manual
+            try:
+                peso_str = self.var_peso_fin.get().strip()
+                if not peso_str or peso_str == "---":
+                    raise ValueError
+                self.peso_final_val = float(peso_str)
+            except ValueError:
+                logger.warning("Faltan datos (peso final manual) para calcular caudal.")
+                return
+
         if self.peso_inicial_val is None or self.peso_final_val is None or self.tiempo_final_val is None:
             logger.warning("Faltan datos para calcular caudal.")
             return

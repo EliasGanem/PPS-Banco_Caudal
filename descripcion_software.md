@@ -43,14 +43,14 @@ Diseño y Disposición (Layout) por Secciones
 
     - Columna Derecha: está dividida en dos secciones horizontales
         1. Primera sección horizontal tiene el título “Mediciones”
-            - Estructura: Una lista de dos campos que son botones de acción alineados verticalmente a la izquierda. A la derecha de cada uno de botones, hay un recuadro que es un campo numérico que mostrará el valor de la variable indicada.
+            - Estructura: Una lista de dos campos que son botones de acción alineados verticalmente a la izquierda. A la derecha de cada uno de botones, hay un recuadro que es un campo numérico que mostrará el valor de la variable indicada. A la derecha de los recuadros debe haber un slider que permita seleccionar entre modo manual o automatico para cada campo de la lista.
                 - Campos:   
                     - "Peso Inicial [kg]" 
                     - "Peso Final [kg]" 
         2. Segunda sección horizontal tiene el título “Resultados”, el cual es un botón de acción para calcular los caudales.
             - Estructura: Una lista de cuatro campos alineados verticalmente a la izquierda. Tienen el título a la izquierda y el valor dentro de un recuadro que es un campo numérico que mostrará el valor de la variable indicada.
             - Campos: 
-                - "Tiempo [s]” 
+                - "Tiempo [s]” A la derecha de este campo debe haber un slider para seleccionar entre modo manual o automatico.
                 - "Peso Neto [kg]" 
                 - "Caudal Másico [kg/s]" 
                 - "Caudal Volumétrico [m³/s]" 
@@ -65,6 +65,9 @@ Diseño y Disposición (Layout) por Secciones
 
 4. Cuarto Panel: "Terminal"
     - Estructura: Ocupa todo el ancho de la interfaz. Es un desplegable que se habilita con contraseña. Acá irá la terminal serial.
+
+## Slider
+Los slaider deben tener dos posiciones: Manual y Automatico. Cada una con un color distintivo: Manual en color naranja y Auto en color verde. En la posicion manual muestra una M, y en la otra una A.
 
 ## Paleta de colores para los botones:
 1. Botones de Acción Principal (Arranque / Iniciar / OK)
@@ -152,3 +155,12 @@ Se debe tener un parámetro de densidad que será ingresado por el usuario en la
 9. Debajo del cuadro donde aparece cada imagen debe decir: "Imagen #" donde # es el numero de imagen según el orden cronológico en que se tomaron. Por ejemplo, en el primer cuadro debe aparecer "Imagen 1" y así sucesivamente.
 
 10. En los cuadros desplegables de selección de puertos COM se debe indicar a que corresponde. Es decir, si corresponde a la camara o al banco de caudal.
+
+11. Los slider de los campos que permitan seleccionar modo manual o automatica cambian la forma de obternir los datos del banco de caudal.
+    - Cuando está en modo automatico el funcionamiento es el descripto anteriormente, es decir, se espera que el valor sea devuelto por el banco de caudal.
+    - Cuando está en modo manual no se espera que el banco de caudal envie nada, si no que el usuario ingrese los datos manualmente a traves del campo numerico del mismo recuadro. Los valores ingresados son los que se utilizan para hacer los calculos.
+    - Nota: en modo automatico no se puede cambiar el valor, y los sliders deben estar en modo automático al iniciar el programa. El modo manual es independiente para cada uno de los campos.
+
+12. Los campos numéricos deben validar que los valores ingresados sean números válidos. Por ejemplo, si se intenta ingresar una letra, el campo debe mostrar un error o simplemente no permitir el ingreso de la letra.
+
+13. Cuando se pide de forma automatica el tiempo y no se recibe el valor del banco de caudal el cuadro numerico debe ponerse con --- y debe permitir ingresar el valor de forma manual. 
