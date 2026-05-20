@@ -62,3 +62,7 @@ Thumbs.db
 .idea/
 *.swp
 *~
+
+*.jpg
+*.bat
+*.csv
