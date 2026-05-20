@@ -30,7 +30,7 @@
  * Definir como 0 si es lógica negativa (activo en bajo)
  */
 #define LOGIC_HAB_MUX_ACTIVE 0
-#define LOGIC_VALV_RECIRC_ACTIVE 1
+#define LOGIC_VALV_RECIRC_ACTIVE 0 // Activa en bajo
 #define LOGIC_VALV_PESADA_ACTIVE 1
 
 /**
@@ -49,7 +49,7 @@
  * @brief Valores de time out para comunicación RS-232
  */
 #define TIME_OUT_BYTE_BALANZA 50 // milisegundos
-#define TIME_OUT_BALANZA 300     // milisegundos
-#define TIME_OUT_RELOJ 100       // milisegundos
+#define TIME_OUT_BALANZA 3000    // milisegundos
+#define TIME_OUT_RELOJ 1000      // milisegundos
 
 #endif // BOARD_CONFIG_H
