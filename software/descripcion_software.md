@@ -1,185 +1,335 @@
-# Descripción del software
+# Descripción del Software
 
-Este código se encarga de controlar por USB COM un banco de caudal, que se utiliza para hacer ensayos de calibración de caudalimetros. Para ello recibe y envía información al banco de caudal a traves de USB COM. Además utiliza una camara de fotos a través de usb para tomar imágenes en diferentes momentos.
+## Índice
+1. [Descripción General](#1-descripción-general)
+2. [Descripción de la Interfaz de Usuario](#2-descripción-de-la-interfaz-de-usuario)
+3. [Descripción del Funcionamiento](#3-descripción-del-funcionamiento)
 
-# Descripción de interfaz de usuario
+---
 
-## Estilo Visual
-- Tema: Modo oscuro (Dark Mode), con un estilo técnico, industrial o de panel de control de laboratorio.
-- Colores Principales:
-    - Fondo principal: Gris oscuro (#242424)
-    - Fondo de los inputs/cajas: Gris claro mate.
-- Texto: Blanco o gris muy claro para una alta legibilidad.
-- Texto inputs: gris o negro para una alta legibilidad
-- Tipografía: Limpia, sin remates (sans-serif),moderna.
+## 1. Descripción General
 
-## Estructura de Contenedores:
-Toda la interfaz gráfica debe estar envuelta en un contenedor con capacidad de desplazamiento (scrollable) para garantizar que los elementos, como la terminal, no queden ocultos ni recortados en monitores con resoluciones más bajas.
-La interfaz está dividida en cuatro bloques horizontales principales. Cada bloque tendrá un fondo de color gris más claro (#2b2b2b) y el título de cada sección está incrustado en la línea superior del marco (estilo fieldset y legend en HTML).
+Este software controla un banco de caudal a través de comunicación USB COM para realizar ensayos de calibración de caudalímetros. Permite enviar comandos y recibir datos de medición (peso y tiempo) desde el hardware del banco, y capturar imágenes sincronizadas con el ensayo mediante una cámara USB.
 
-Diseño y Disposición (Layout) por Secciones
-1. Panel Superior: está dividido en dos columnas: 
-    1. "Configuración"
-        - Estructura: ocupa la mitad izquierda del ancho de la interfaz.
-        - Elementos:
-            - A la izquierda: Un texto que dice "Banco de Caudal" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
-            - A la derecha de lo anterior, con un espaciado suficiente como para distinguir que se tratan de opciones distintas, u texto que dice "Cámara" seguido de un menú desplegable (dropdown/select). A la derecha de este menú, un indicador visual tipo LED de color rojo cuando no hay conexión y verde cuando está conectado.
-            - Luego de estas opciones, con un espaciado suficiente, un botón circular con el ícono de actualizar, el cual sirve para actualizar los puertos COM de la cámara y el banco de caudal. 
-            - En la parte derecha hay un icono de una carpeta. Si se posiciona el mouse encima de este se muestra la ruta actual de la carpeta "ensayos_banco_caudal". Si se presiona el icono se abre un explorador de archivos para seleccionar la nueva ruta.
-    2. "Advertencias"
-        - Estructura: ocupa la mitad derecha del ancho de la interfaz.
-        - Tiene un recuadro de texto donde se mostrarán las advertencias. Como por ejemplo: falta peso inicial para iniciar ensayo o no está conectado el banco de caudal.
+### Principales funcionalidades
+- **Ensayo de caudal:** inicia y detiene un ensayo con duración configurable. Registra el peso inicial, el peso final y el tiempo de ensayo para calcular los caudales másico y volumétrico.
+- **Captura de imágenes:** toma 6 fotografías distribuidas a lo largo del ensayo y las muestra en la interfaz.
+- **Retorno de fluido:** controla el retorno del fluido al tanque, monitoreando el peso hasta que alcanza un mínimo configurable.
+- **Almacenamiento de datos:** guarda las imágenes y un archivo CSV con los resultados de cada ensayo en una carpeta organizada por fecha y hora.
+- **Terminal serie:** terminal integrada con acceso protegido por contraseña para comunicación directa con el banco de caudal.
+- **Modos de operación (Manual/Automático):** cada campo de medición (peso inicial, peso final y tiempo) puede obtenerse del banco de caudal (modo automático) o ingresarse manualmente por el usuario.
 
-2. Panel Central: está dividido en dos columnas.
-    - Columna Izquierda (1/3 del total): está dividida en tres secciones horizontales:
-        1. Primera sección horizontal posee los siguientes elementos de entrada:
-            - "Duración Ensayo [s]” Al lado de este texto debe haber un recuadro que es un campo numérico donde se ingresará la duración del ensayo.
-            - "Densidad del Fluido [kg/m³]” Al lado de este texto debe haber un recuadro que es un campo numérico donde se ingresará la densidad.
-        2. Segunda sección horizontal posee el siguiente botón de accion:
-            - Un botón grande que ocupa el ancho de la columna con el texto "Iniciar Ensayo".
-            - Estado del botón: Está deshabilitado (disabled), se ve opaco/oscurecido.
-        3. Tercera sección horizontal posee los siguientes botones de accion:
-            - Un botón que ocupa un poco menos de la mitad del ancho de la columna con el texto "Iniciar Retorno".
-            - A la derecha del anterior, a una distancia suficiente, un botón que ocupa el espacio restante de la columna con el texto "Finalizar Retorno".
+### Tecnologías utilizadas
+| Componente | Tecnología |
+|---|---|
+| Interfaz gráfica | CustomTkinter |
+| Cámara USB | OpenCV (cv2) |
+| Comunicación serie | pyserial |
+| Hilos secundarios | threading (stdlib) |
 
-    - Columna Derecha: está dividida en dos secciones horizontales
-        1. Primera sección horizontal tiene el título “Mediciones”
-            - Estructura: Una lista de dos campos que son botones de acción alineados verticalmente a la izquierda. A la derecha de cada uno de botones, hay un recuadro que es un campo numérico que mostrará el valor de la variable indicada. A la derecha de los recuadros debe haber un slider que permita seleccionar entre modo manual o automatico para cada campo de la lista.
-                - Campos:   
-                    - "Peso Inicial [kg]" 
-                    - "Peso Final [kg]" 
-        2. Segunda sección horizontal tiene el título “Resultados”.
-            - Estructura: Una lista de cuatro campos alineados verticalmente a la izquierda. Tienen el título a la izquierda y el valor dentro de un recuadro que es un campo numérico que mostrará el valor de la variable indicada. Debajo de la lista de campos, se ubica un botón de acción con el texto "Calcular" que procesa las ecuaciones y muestra los caudales.
-            - Campos: 
-                - "Tiempo [s]” A la derecha de este campo debe haber un slider para seleccionar entre modo manual o automatico.
-                - "Peso Neto [kg]" 
-                - "Caudal Másico [kg/s]" 
-                - "Caudal Volumétrico [m³/s]" 
-3. Tercer Panel: "Imágenes del Ensayo"
-    - Estructura: Ocupa todo el ancho de la interfaz.
-    - Elementos: Una galería horizontal (grid de 1 fila y 6 columnas) con contenedores tipo "marcadores de posición" (placeholders).
-    - Diseño de cada marcador:
-        - Tienen forma cuadrada con esquinas redondeadas.
-        - Fondo gris claro
-        - En el centro tienen el ícono de una cámarafotográfica.
-        - Debajo del cuadro, un texto que numera cada cuadro de izquierda a derecha: "Imagen 1","Imagen2", "Imagen 3", "Imagen 4", "Imagen 5" y "Imagen 6".
+> **Nota sobre concurrencia:** la comunicación USB COM y la captura de fotos se ejecutan en hilos (threads) secundarios para no bloquear la interfaz de usuario. Los hilos secundarios nunca actualizan directamente la UI; en su lugar, los resultados se envían al hilo principal mediante callbacks seguros (`after()`).
 
-4. Cuarto Panel: "Terminal"
-    - Estructura: Ocupa todo el ancho de la interfaz. Es un desplegable que se habilita con contraseña. Acá irá la terminal serial.
+### Parámetros configurables
+Los siguientes parámetros son configurables desde el archivo `config.py` para que los diseñadores/programadores puedan modificarlos sin alterar la lógica del programa:
 
-## Slider
-Los slaider deben tener dos posiciones: Manual y Automatico. Cada una con un color distintivo: Manual en color naranja y Auto en color verde. En la posicion manual muestra una M, y en la otra una A.
+| Parámetro | Descripción | Valor por defecto |
+|---|---|---|
+| `TERMINADOR_RX` | Terminador esperado en las respuestas del banco | `\x00` (Null) |
+| `TERMINADOR_TX` | Terminador que se envía al banco | `\x00` (Null) |
+| `TIME_OUT_USB` | Timeout de lectura en segundos | 0.5 |
+| `BAUDRATE_USB` | Velocidad de comunicación | 115200 |
+| `VID_DEFECTO` | Vendor ID para autodetección del puerto | `"1A86"` |
+| `PID_DEFECTO` | Product ID para autodetección del puerto | `"55D4"` |
+| `DURACION_ENSAYO_POR_DEFECTO_S` | Duración por defecto del ensayo [s] | 10.0 |
+| `PERIODO_MEDICION_BALANZA_RETORNO_MS` | Período de polling de peso durante el retorno [ms] | 1000 |
+| `PESO_MINIMO_RETORNO_KG` | Peso mínimo que detiene el retorno [kg] | 5.0 |
+| `PESO_MAXIMO_TANQUE_KG` | Peso máximo del tanque (impide iniciar ensayo si se supera) [kg] | 220.0 |
+| `CONTRASENIA_TERMINAL` | Contraseña para desbloquear la terminal serie | `"1234"` |
 
-## Paleta de colores para los botones:
-1. Botones de Acción Principal (Arranque / Iniciar / OK)
-    - Color Base (Reposo): #388E3C (Un verde sólido, no tan brillante que canse la vista).
-    - Color Hover (Al pasar el mouse): #4CAF50 (Un tono más claro para dar feedback de interacción).
-2. Botones Críticos o de Parada (Detener / Abortar / Error)
-    - Color Base (Reposo): #D32F2F (Un rojo profundo y serio).
-    - Color Hover (Al pasar el mouse): #F44336 (Rojo vibrante).
-3. Botones de Advertencia o Transición (Pausa / Precaución)
-    - Color Base (Reposo): #F57C00 (Naranja oscuro/ámbar).
-    - Color Hover (Al pasar el mouse): #FFB300 (Amarillo ámbar brillante).
-4. Botones Secundarios o de Configuración (Neutros)
-    - Color Base (Reposo): #1976D2 (Azul técnico) o #424242 (Gris medio).
-    - Color Hover (Al pasar el mouse): #2196F3 (Azul claro) o #545454 (Gris más claro).
+### Unidades
+Todas las unidades se expresan en el Sistema Internacional (SIMELA):
+- Peso: **kg** (2 decimales)
+- Tiempo: **s** (3 decimales)
+- Caudal másico: **kg/s**
+- Caudal volumétrico: **m³/s**
+- Densidad: **kg/m³**
 
-Para los textos que vayan dentro de estos botones (especialmente los de colores saturados como rojo, verde y azul), te recomiendo usar blanco puro (#FFFFFF) o un blanco apenas roto (#F5F5F5).
+---
 
-## Imagen
-Ténes una imagen que se llama IU.png que usaras de guía.
+## 2. Descripción de la Interfaz de Usuario
 
-# Descripción de funcionamiento
+### Estilo Visual
+- **Tema:** Modo oscuro (Dark Mode), con estilo técnico/industrial de panel de control de laboratorio.
+- **Colores principales:**
+    - Fondo principal: `#242424` (gris oscuro).
+    - Fondo de contenedores/secciones: `#2b2b2b` (gris ligeramente más claro).
+    - Fondo de inputs: gris claro mate (`#D3D3D3`).
+- **Texto:** blanco o gris muy claro (`#FFFFFF` / `#F5F5F5`) para alta legibilidad. Texto dentro de inputs: gris o negro.
+- **Tipografía:** sans-serif, moderna y limpia (Inter).
 
-La comunicación con el banco de caudal es a través de usb com, se envían comandos y se reciben datos. Tanto los datos como los comandos son cadenas de caracteres, donde el ultimo caracter es un terminador configurable por código (macros separadas para envío y recepción).
-Cuando se inicia el programa se intenta establecer comunicación con el banco de caudal y con la cámara.
+### Paleta de colores para botones
 
-Al presionar el boton de "iniciar ensayo" se envia el comando "INICIAR ENSAYO" al banco de caudal. La duración del ensayo se obtiene del valor ingresado por el usuario en el recuadro correspondiente, el valor por defecto de la duración del ensayo es de 10 segundos (este valor debe estar parametrizado para los diseñadores puedas modificarlo en el codigo). Para saber cuanto tiempo transcurrió se utiliza el reloj de la computadora. Se debe verificar que  el tiempo transcurrido desde que inicio el ensayo coincida con la duración del ensayo, cuando esto sucede se envía el comando FINALIZAR ENSAYO. Luego de enviar el comando espera a que el banco de caudal le envie la duración del ensayo. Se utiliza este valor para determinar el tiempo final del ensayo y calcular los caudales. 
+| Categoría | Color base (reposo) | Color hover |
+|---|---|---|
+| **Acción principal** (Iniciar / OK / Calcular) | `#388E3C` (verde sólido) | `#4CAF50` |
+| **Crítico / Parada** (Detener / Finalizar) | `#D32F2F` (rojo profundo) | `#F44336` |
+| **Advertencia / Transición** (Retorno / Pausa) | `#F57C00` (naranja/ámbar) | `#FFB300` |
+| **Secundario / Neutro** (Refrescar / Config) | `#1976D2` (azul) o `#424242` (gris) | `#2196F3` o `#545454` |
 
-Visualmente, al iniciar un nuevo ensayo, la aplicación debe borrar cualquier resultado remanente de ensayos previos. Esto implica restablecer los valores de Peso Final, Peso Neto, Caudal Másico y Caudal Volumétrico al valor `"---"`, restablecer el Tiempo a `"0.00"` y reiniciar los recuadros de las imágenes a un estado en blanco.
+Textos dentro de botones de colores saturados: blanco puro (`#FFFFFF`) o blanco roto (`#F5F5F5`).
 
-Al iniciar el ensayo se toma la primera imagen de la camara y las 5 imágenes restantes se toman cada una quinta parte del tiempo de ensayo. Por ejemplo, si el tiempo de ensayo son 25 segundos, las imágenes se tomarán a los 0, 5, 10, 15, 20 y 25 segundos. Estas imagenes se mostraran en orden cronológico en los recuadros correspondientes.
+### Sliders Manual/Automático
+Los sliders tienen dos posiciones con colores distintivos:
+- **Manual (M):** color naranja (`#F57C00`).
+- **Automático (A):** color verde (`#388E3C`).
 
-Cuando no se esta ensayando y se presiona el botón "peso inicial" o "peso final" se debe enviar el comando MEDICION BALANZA, luego se espera recibir el valor del peso el cual se debe mostrar en el indicador correspondiente. 
+Al iniciar el programa, todos los sliders comienzan en modo **Automático**.
 
-Una vez finalizado el ensayo se debe calcular el caudal a partir de los datos de tiempo final, peso inicial y peso final obtenidos. El calculo y la indicacion se realizan una vez presionado el boton "calcular caudal", solo cuando se haya presionado el boton "peso final".
+### Contenedor principal
+Toda la interfaz está envuelta en un contenedor con desplazamiento vertical (scrollable) para garantizar que los elementos no queden ocultos en monitores con resoluciones bajas.
 
-Al precionar el boton "iniciar retorno" se envia el comando "INICIAR RETORNO" al banco de caudal. Cuando esto pasa el programa debe enviar al banco de caudal el comando "MEDICION BALANZA" cada un tiempo configurable con una macro y a partir del valor recibido debe controlar que el peso no sea menor a un valor configurable con una macro. Estas macros son congifurables poer el programador desde el código. Si el valor que devuelve el banco de caudal es menor o igual al valor minimo o si se presiona el boton "finalizar retorno" se debe enviar el comando FINALIZAR RETORNO al banco de caudal.
+### Estructura y disposición (Layout)
 
-No se puede presionar "iniciar ensayo" sin antes haber presionado el boton "peso inicial" (si está en modo automático) o sin haber escrito un valor numérico válido en el campo correspondiente (si está en modo manual). De la misma manera, para accionar el botón de "Resultados" (calcular los caudales), el software debe comprobar que el usuario haya registrado o tipeado un Peso Final y un Tiempo válidos; si no es así, debe emitir una advertencia.
+La interfaz se divide en **cuatro paneles horizontales** principales. Cada sección tiene fondo `#2b2b2b` con esquinas redondeadas y su título incrustado en la línea superior del marco (estilo fieldset/legend de HTML).
 
-Se debe tener un selector de puerto para elegir que camara usar. Este selector debe mostrar todas las camaras disponibles. En caso de no tener una camara conectada el programa seguira funcionando sin tomar las fotos. El indicador de camara conectada debe cumplir su funcion.
+#### Panel 1 — Fila superior (dos columnas)
 
-Aunque la selección del puerto al que esta conectado el banco de caudal es automatico, debe haber un selector para poder elegir otro puerto com en caso de ser necesario. Y debe mostrar que puerto com esta seleccionado. Es decir, al inicio aparece el puerto com que se determino automaticamente, pero se puede hacer click y se debe desplegar una barra con las distintas opciones de puertos para elegir.
+**Columna izquierda — "Configuración"** (~60% del ancho)
 
-Las imagenes se guardarán en una carpeta llamada ensayos_banco_caudal. Las imagenes corrspondientes a cada ensayo se guardan dentro de otras carpeta cuyo nombre es la fecha y hora del ensayo, y estas estaran dentro de la carpeta ensayo_banco_caudal. El nombre de las fotos sera un nuemero segun el orden cronologico en que se tomaron, la primera será la img_1. 
+Contiene los controles de conexión de hardware dispuestos horizontalmente:
+1. Texto **"Banco de Caudal"** + menú desplegable con los puertos COM disponibles + indicador LED (rojo = desconectado, verde = conectado). El desplegable muestra inicialmente el puerto autodetectado, pero permite seleccionar otro manualmente.
+2. A continuación, con espaciado suficiente, texto **"Cámara"** + menú desplegable con las cámaras disponibles + indicador LED.
+3. Botón circular con ícono de actualizar (🔄) para refrescar la lista de puertos COM y cámaras.
+4. En el extremo derecho, ícono de carpeta (📁). Al posicionar el mouse muestra la ruta actual de la carpeta de ensayos. Al hacer clic, abre un explorador de archivos para seleccionar una nueva ruta base.
 
-Adicionalmente, la selección de la ruta base donde se crea la carpeta "ensayos_banco_caudal" (manejada mediante el ícono de la carpeta) debe ser persistente a través de los reinicios de la aplicación utilizando un archivo de configuración (`config.json`). De esta forma, el programa recordará la última ruta elegida por el usuario.
+**Columna derecha — "Advertencias"** (~40% del ancho)
 
-Ademas en la carpeta del ensayo debe generarse un archivo .csv con los datos de las mediciones, donde la primera columna tiene el nombre de la variable con sus respectivas unidades y la segunda el valor. Las variables que debe guarfar son:
-- fecha y hora [hh:mm:ss - dd/mm/aaaa]
-- Tiempo de ensayo [s]
-- Peso inicial [kg]
-- Peso final [kg]
-- Peso neto [kg]
-- Caudal másico [kg/s]
-- Caudal volumétrico [m3/s]
-- Densidad [kg/m3]
+Recuadro de texto donde se muestran mensajes de advertencia al usuario, como por ejemplo: "Falta peso inicial para iniciar ensayo" o "No está conectado el banco de caudal".
 
-Se debe tener un parámetro de densidad que será ingresado por el usuario en la interfaz de usuario, este debe ser mostrado. No se puede iniciar el ensayo a menos que se tenga el haya ingresado el valor de densidad. 
+#### Panel 2 — Panel central (tres columnas)
 
-# Otras especificaciones
-1.  Comunicación usb com 
-    - Parámetros: 115200 baudios, 8 bits de datos, sin paridad y un bit de stop.
-    - Puerto: se elige automaticamente a partir del vendor id y del produc id, los cuales deben estar parametrizados.
-    - Formato de datos recibidos según el comando enviado:
-        - MEDICION BALANZA: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 7 caractes mas el terminador configurado.
-        - MEDICION RELOJ: viene en un string donde los mas significativos son la parte entera luego viene un punto y despues la parte decimal. La longitud del string es de 8 caractes mas el terminador configurado.
-        - MEDICION COMPLETA: en este caso se reciben dos string con el mismo formato que los anteriores. Pero primero llega el peso y luego el tiempo.
-    - Formato de los datos enviados: es un string de longitud variable seguido del terminador configurado. 
-        - INICIAR ENSAYO: longitud 15 caracteres mas el terminador configurado.
-        - FINALIZAR ENSAYO: longitud 16 caracteres mas el terminador configurado.
-        - MEDICION BALANZA: longitud 17 caracteres mas el terminador configurado.
-        - MEDICION RELOJ: longitud 16 caracteres mas el terminador configurado.
-        - MEDICION COMPLETA: longitud 17 caracteres mas el terminador configurado.
+**Columna izquierda — Controles de ensayo** (~1/3 del ancho)
 
-2. No se debe bloquear la UI: la usb com y la captura de fotos corran en un hilo (thread) separado para que se pueda utilizar la camara, el banco de caudal y el resto del programa de forma simultanea.
+Dividida en tres secciones verticales:
+1. **Campos de entrada:**
+    - "Duración Ensayo [s]": campo numérico (valor por defecto: 10.0 s).
+    - "Densidad del Fluido [kg/m³]": campo numérico (valor por defecto: 998.0).
+2. **Botón "Iniciar Ensayo":** botón grande verde que ocupa el ancho de la columna.
+3. **Botones de retorno:**
+    - "Iniciar Retorno" (naranja): ocupa la mitad izquierda.
+    - "Finalizar Retorno" (rojo, deshabilitado por defecto): ocupa la mitad derecha.
 
-3. Libreria para el control de la camára: se debe usar OpenCV (cv2).
+**Columna central — "Mediciones"** (~1/3 del ancho)
 
-4. Polling de MEDICION RELOJ se realiza cada 100 milisegundos.
+Lista de dos campos con botón de acción, recuadro numérico y slider:
+- **"Peso Inicial [kg]"**: botón + campo numérico + slider (M/A).
+- **"Peso Final [kg]"**: botón + campo numérico + slider (M/A).
 
-5. Cálculo de caudal masico: el caudal se calcula: (peso final - peso inicial)/(Tiempo). Debe ser mostrado en el indicador correspondiente una vez presionado el boton calcular caudar. Las unidades en SIMELA serían kg/s.
+En modo automático, al presionar el botón se solicita el valor al banco de caudal. En modo manual, el campo se habilita para tipeo directo y el botón se deshabilita.
 
-6. Cálculo de caudal volumetrico: el caudal se calcula: (peso final - peso inicial)/(Tiempo*densidad). Debe ser mostrado en el indicador correspondiente una vez presionado el boton calcular caudar. Las unidades serían m^3/s.
+**Columna derecha — "Resultados"** (~1/3 del ancho)
 
-7. Utilizá las unidades del SIMELA.
+Lista de cuatro campos de solo lectura:
+- **"Tiempo [s]"**: campo numérico + slider (M/A).
+- **"Peso Neto [kg]"**: campo numérico.
+- **"Caudal Másico [kg/s]"**: campo numérico.
+- **"Caudal Volumétrico [m³/s]"**: campo numérico.
 
-8. Utilizá la librería CustomTkinter para la interfaz gráfica y threading para que la comunicación serial con el banco y la captura de imágenes con OpenCV no bloqueen la interfaz. Nota los hilos secundarios no deben actualizar la interfaz de ususario.
+Debajo de los campos, un botón **"Calcular"** (verde) que procesa las ecuaciones y muestra los resultados.
 
-9. Debajo del cuadro donde aparece cada imagen debe decir: "Imagen #" donde # es el numero de imagen según el orden cronológico en que se tomaron. Por ejemplo, en el primer cuadro debe aparecer "Imagen 1" y así sucesivamente.
+#### Panel 3 — "Imágenes del Ensayo"
 
-10. En los cuadros desplegables de selección de puertos COM se debe indicar a que corresponde. Es decir, si corresponde a la camara o al banco de caudal.
+Ocupa el ancho completo de la interfaz. Contiene una galería horizontal (grid de 1 fila × 6 columnas) con marcadores de posición (placeholders):
+- Cada marcador tiene forma cuadrada con esquinas redondeadas y fondo gris claro.
+- En el centro llevan el ícono de una cámara fotográfica.
+- Debajo de cada cuadro aparece la etiqueta: "Imagen 1", "Imagen 2", ..., "Imagen 6".
 
-11. Los slider de los campos que permitan seleccionar modo manual o automatica cambian la forma de obternir los datos del banco de caudal.
-    - Cuando está en modo automatico el funcionamiento es el descripto anteriormente, es decir, se espera que el valor sea devuelto por el banco de caudal.
-    - Cuando está en modo manual no se espera que el banco de caudal envie nada, si no que el usuario ingrese los datos manualmente a traves del campo numerico del mismo recuadro. Los valores ingresados son los que se utilizan para hacer los calculos.
-    - Nota: en modo automatico no se puede cambiar el valor, y los sliders deben estar en modo automático al iniciar el programa. El modo manual es independiente para cada uno de los campos.
+#### Panel 4 — "Terminal"
 
-12. Los campos numéricos deben validar que los valores ingresados sean números válidos. Por ejemplo, si se intenta ingresar una letra, el campo debe mostrar un error o simplemente no permitir el ingreso de la letra.
+Ocupa el ancho completo de la interfaz. Está protegida por contraseña.
+- **Estado bloqueado (por defecto):** muestra un campo de contraseña y un botón "Desbloquear".
+- **Estado desbloqueado:** despliega una terminal serie con:
+    - Un textbox de solo lectura que muestra los datos enviados (TX) y recibidos (RX).
+    - Un campo de entrada para escribir comandos manualmente.
+    - Un selector de terminador (Null, LF, CR, CRLF, Ninguno).
+    - Botones "Enviar", "Limpiar" y "🔒 Bloquear".
 
-13. Cuando se pide de forma automatica el tiempo y no se recibe el valor del banco de caudal el cuadro numerico debe ponerse con --- y debe permitir ingresar el valor de forma manual. 
+### Imagen de referencia
+Existe una imagen llamada `IU.png` dentro de la carpeta `software/` que sirve como guía visual del diseño.
 
-14. El uso de la terminal debe estar restringido mediante una contraseña. Esta contraseña debe ser configurable desde una macro en el código. Una vez ingresada la contraseña se desplegará la terminal.
+---
 
-15. Para iniciar un ensayo se debe tener el valor de peso inicial, ya sea porque se presionó el botón de peso inicial o porque se ingresó manualmente. En caso de iniciar otro ensayo se tiene que volver a ingresar el valor de peso inicial, ya sea se presionando el boton peso inicial o ingresandolo manualmente. 
+## 3. Descripción del Funcionamiento
 
-16. Solo se puede iniciar un ensayo despues de otro luego de haber presionado el boton de Resultados. Una vez presionado se borra el valor de peso inicial indicando que se debe actualizar, ya sea pidiendolo al banco de caudal o manualmente.
+### 3.1. Inicio del programa
 
-17. Si el peso final obtenido al finalizar el ensayo es mayor a un valor de peso maximo (que es una macro que se cambia desde el codigo) no se puede volver a iniciar el ensayo.
+Al iniciar el programa:
+1. Se intenta detectar automáticamente el puerto COM del banco de caudal a partir del Vendor ID y Product ID configurados. Si se encuentra, se establece la conexión. El usuario puede cambiar el puerto desde el desplegable si fuera necesario.
+2. Se listan las cámaras USB disponibles y se conecta a la primera encontrada. Si no hay cámara, el programa sigue funcionando normalmente pero sin capturar fotos.
+3. Los indicadores LED reflejan el estado de conexión de cada dispositivo y se actualizan periódicamente.
 
-18. No se puede presionar el boton iniciar retorno si se se está ensayando. Y no se puede presionar el boton iniciar ensayo si se está en retorno. 
+### 3.2. Comunicación USB COM
 
-19. Cantidad de decimales que se muestran en los cuadros numericos para:
-    - Pesos: 2 decimales
-    - Tiempo: 3 decimales
+La comunicación con el banco de caudal utiliza los siguientes parámetros serie: **115200 baudios, 8 bits de datos, sin paridad, 1 bit de stop**. Las señales de control DTR y RTS se deshabilitan para evitar reinicios en microcontroladores (como ESP32/Arduino).
+
+Tanto los comandos enviados como los datos recibidos son cadenas de caracteres ASCII finalizadas con un **terminador configurable** (por defecto `\x00`). Los terminadores de envío y recepción se configuran de forma independiente.
+
+**Comandos enviados al banco de caudal:**
+
+| Comando | Longitud (sin terminador) | Espera respuesta |
+|---|---|---|
+| `INICIAR ENSAYO` | 15 caracteres | No |
+| `FINALIZAR ENSAYO` | 16 caracteres | Sí (tiempo del ensayo) |
+| `MEDICION BALANZA` | 17 caracteres | Sí (valor de peso) |
+| `MEDICION RELOJ` | 16 caracteres | Sí (valor de tiempo) |
+| `MEDICION COMPLETA` | 17 caracteres | Sí (peso + tiempo) |
+| `INICIAR RETORNO` | — | No |
+| `FINALIZAR RETORNO` | — | No |
+
+**Formato de datos recibidos:**
+
+| Tipo de medición | Formato | Ejemplo |
+|---|---|---|
+| **MEDICION BALANZA** | String de 7 caracteres + terminador. Parte entera, punto decimal, parte decimal. | `"123.456"` |
+| **MEDICION RELOJ** | String de 8 caracteres + terminador. Parte entera, punto decimal, parte decimal. | `"1234.567"` |
+| **MEDICION COMPLETA** | Dos strings consecutivos: primero el peso (formato BALANZA), luego el tiempo (formato RELOJ). | — |
+
+### 3.3. Modos de operación: Manual y Automático
+
+Cada campo de medición (Peso Inicial, Peso Final y Tiempo) tiene un slider que permite seleccionar entre modo **Manual** y **Automático**. El modo es independiente para cada campo.
+
+- **Modo Automático (A):** el valor se obtiene del banco de caudal. El campo numérico está deshabilitado (no se puede editar) y el botón de medición está habilitado. Al iniciar el programa, todos los campos comienzan en este modo.
+- **Modo Manual (M):** el campo numérico se habilita para que el usuario ingrese el valor manualmente. El botón de medición se deshabilita. Los valores ingresados se usan para los cálculos.
+
+**Validación de campos numéricos:** todos los campos numéricos validan que los valores ingresados sean números válidos. No se permite el ingreso de letras ni caracteres no numéricos (excepto el punto decimal y el signo menos).
+
+### 3.4. Ensayo de caudal
+
+#### Precondiciones para iniciar un ensayo
+
+Para poder presionar "Iniciar Ensayo" se deben cumplir **todas** las siguientes condiciones:
+1. Se debe haber ingresado un valor de **densidad** válido.
+2. Se debe haber ingresado una **duración de ensayo** válida (mayor a 0).
+3. Se debe contar con un **peso inicial** válido, ya sea obtenido del banco (presionando el botón en modo automático) o ingresado manualmente. Al iniciar un nuevo ensayo, el peso inicial del ensayo anterior se borra, por lo que siempre debe volver a tomarse o ingresarse.
+4. El peso inicial no debe superar el **peso máximo del tanque** (macro `PESO_MAXIMO_TANQUE_KG`). Si lo supera, se muestra una advertencia indicando que se debe vaciar el tanque mediante el retorno.
+5. No debe haber un **ensayo anterior pendiente de cálculo de resultados**. Es decir, después de un ensayo se debe presionar el botón "Calcular" antes de poder iniciar otro.
+6. No debe estar en curso un **retorno**.
+
+Si alguna condición no se cumple, se muestra una advertencia en el panel correspondiente.
+
+#### Secuencia del ensayo
+
+1. **Inicio:** al presionar "Iniciar Ensayo":
+    - Se borran los resultados del ensayo anterior: Peso Final, Peso Neto, Caudal Másico y Caudal Volumétrico se restablecen a `"---"`. El Tiempo se restablece a `"0.000"`. Las imágenes se reinician a placeholders vacíos.
+    - Se crea una nueva carpeta de ensayo dentro de `ensayos_banco_caudal/`, con nombre basado en la fecha y hora (formato `AAAA-MM-DD_HH-MM-SS`).
+    - Se envía el comando `INICIAR ENSAYO` al banco de caudal.
+    - Se deshabilitan los botones "Iniciar Ensayo" e "Iniciar Retorno".
+    - Se toma la **primera foto** (imagen 1, en T=0).
+
+2. **Durante el ensayo:**
+    - Se utiliza el reloj de la computadora para medir el tiempo transcurrido, el cual se actualiza en pantalla cada ~50 ms.
+    - Las 5 fotos restantes se toman a intervalos iguales de un quinto de la duración. Por ejemplo, si la duración es 25 s, las fotos se toman en T=0, 5, 10, 15, 20 y 25 s.
+    - Las imágenes se muestran en los recuadros correspondientes en orden cronológico.
+
+3. **Finalización:** cuando el tiempo transcurrido alcanza la duración del ensayo:
+    - Se envía el comando `FINALIZAR ENSAYO` al banco de caudal.
+    - Se espera recibir la **duración oficial del ensayo** medida por el banco.
+    - Este valor de tiempo es el que se utiliza para calcular los caudales.
+    - Si el banco no responde (timeout), el campo Tiempo se muestra como `"---"` y se habilita automáticamente el **modo manual** para que el usuario lo ingrese.
+    - Se habilitan nuevamente los botones "Iniciar Ensayo" e "Iniciar Retorno".
+
+### 3.5. Cálculo de resultados
+
+Al presionar el botón **"Calcular"**:
+
+1. Se leen los valores de Peso Final y Tiempo. Si alguno de estos campos está en modo manual, se toma el valor del campo de texto; si está en modo automático, se usa el valor obtenido del banco.
+2. Se verifica que existan valores válidos de peso inicial, peso final y tiempo. Si falta alguno, se muestra una advertencia.
+3. Se calculan:
+
+| Resultado | Fórmula | Unidad |
+|---|---|---|
+| **Peso Neto** | Peso Final − Peso Inicial | kg |
+| **Caudal Másico** | (Peso Final − Peso Inicial) / Tiempo | kg/s |
+| **Caudal Volumétrico** | (Peso Final − Peso Inicial) / (Tiempo × Densidad) | m³/s |
+
+4. Los resultados se muestran en los campos correspondientes.
+5. Se genera un archivo **`mediciones.csv`** dentro de la carpeta del ensayo, con una fila por cada variable:
+
+| Variable (columna 1) | Valor (columna 2) |
+|---|---|
+| fecha y hora [hh:mm:ss - dd/mm/aaaa] | 14:30:00 - 21/05/2026 |
+| Tiempo de ensayo [s] | 10.000 |
+| Peso inicial [kg] | 5.000 |
+| Peso final [kg] | 15.000 |
+| Peso neto [kg] | 10.000 |
+| Caudal másico [kg/s] | 1.0000 |
+| Caudal volumétrico [m3/s] | 0.001002 |
+| Densidad [kg/m3] | 998.000 |
+
+6. Luego de calcular los resultados:
+    - Se borra el valor de peso inicial, indicando que se debe volver a medir o ingresar para el próximo ensayo.
+    - Se desbloquea la posibilidad de iniciar un nuevo ensayo.
+
+### 3.6. Medición de peso (fuera de un ensayo)
+
+Cuando **no** se está ensayando ni en retorno, al presionar el botón **"Peso Inicial"** o **"Peso Final"** (en modo automático):
+- Se envía el comando `MEDICION BALANZA` al banco de caudal.
+- Se espera recibir el valor de peso.
+- El valor se muestra en el campo correspondiente con 2 decimales.
+
+### 3.7. Retorno de fluido
+
+El retorno permite devolver el fluido acumulado en el tanque a su origen.
+
+#### Precondiciones
+- No se puede iniciar un retorno mientras se está realizando un ensayo.
+- No se puede iniciar un ensayo mientras se está realizando un retorno.
+
+#### Secuencia del retorno
+
+1. Al presionar **"Iniciar Retorno":**
+    - Se envía el comando `INICIAR RETORNO` al banco de caudal.
+    - Se deshabilita el botón "Iniciar Ensayo" y "Iniciar Retorno".
+    - Se habilita el botón "Finalizar Retorno".
+    - Se inicia un **polling periódico** del peso del tanque: cada `PERIODO_MEDICION_BALANZA_RETORNO_MS` milisegundos se envía el comando `MEDICION BALANZA`.
+
+2. **El retorno se detiene automáticamente** cuando el peso recibido es menor o igual a `PESO_MINIMO_RETORNO_KG`, o **manualmente** cuando el usuario presiona "Finalizar Retorno".
+
+3. Al detenerse:
+    - Se envía el comando `FINALIZAR RETORNO` al banco de caudal.
+    - Se rehabilitan los botones "Iniciar Ensayo" e "Iniciar Retorno".
+    - Se deshabilita "Finalizar Retorno".
+
+### 3.8. Captura y almacenamiento de imágenes
+
+- Las imágenes se capturan usando **OpenCV (cv2)** en un hilo secundario.
+- Se toman **6 fotos** por ensayo: la primera en T=0 y las 5 restantes distribuidas equitativamente a lo largo de la duración del ensayo.
+- Cada imagen se muestra en el recuadro correspondiente (Imagen 1 a Imagen 6) en orden cronológico.
+- Las imágenes se guardan como archivos `.jpg` con nombres `img_1.jpg` a `img_6.jpg`.
+- La estructura de carpetas es:
+    ```
+    <ruta_base>/ensayos_banco_caudal/
+    └── 2026-05-21_14-30-00/
+        ├── img_1.jpg
+        ├── img_2.jpg
+        ├── ...
+        ├── img_6.jpg
+        └── mediciones.csv
+    ```
+- La **ruta base** donde se crea la carpeta `ensayos_banco_caudal` se puede cambiar desde el ícono de carpeta en la interfaz. La ruta seleccionada se guarda en un archivo `config.json` para que persista entre reinicios de la aplicación.
+- Si no hay cámara conectada, el programa funciona normalmente sin tomar fotos.
+
+### 3.9. Terminal serie
+
+La terminal serie permite enviar comandos directamente al banco de caudal y ver las tramas de datos en ambas direcciones (TX y RX).
+
+- **Acceso restringido:** la terminal está bloqueada por defecto. Para desbloquearla se debe ingresar la contraseña configurada en `CONTRASENIA_TERMINAL`. Se puede volver a bloquear presionando "🔒 Bloquear".
+- **Funcionalidades disponibles:**
+    - Enviar un comando de texto libre con el terminador seleccionado (Null, LF, CR, CRLF o ninguno).
+    - Visualizar en tiempo real las tramas enviadas (`> TX:`) y recibidas (`< RX:`), con caracteres no imprimibles formateados (por ejemplo, `\0`, `\r`, `\n`).
+    - Limpiar el historial de la terminal.
+- **Nota:** la terminal funciona de forma transparente junto con los comandos enviados automáticamente por el programa. Cualquier comunicación (automática o manual) se refleja en la terminal si está desbloqueada.
+
+### 3.10. Peso máximo del tanque
+
+Si al finalizar un ensayo el peso final obtenido es **mayor o igual** al valor de `PESO_MAXIMO_TANQUE_KG`, no se permite iniciar un nuevo ensayo. Se muestra una advertencia indicando que se debe vaciar el tanque usando la función de retorno.
