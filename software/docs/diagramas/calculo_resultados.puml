@@ -1,0 +1,84 @@
+@startuml calculo_resultados
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #F3E5F5
+skinparam activityBorderColor #6A1B9A
+skinparam activityDiamondBackgroundColor #F3E5F5
+skinparam activityDiamondBorderColor #6A1B9A
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Cálculo de Resultados
+
+start
+
+partition "Lectura de valores según modo" #F5F5F5 {
+    if (¿Slider Tiempo\nen Manual?) then (sí)
+        :Leer Tiempo del\ncampo de texto;
+        if (¿Valor válido?) then (no)
+            :Advertencia: "Falta\ntiempo manual";
+            stop
+        else (sí)
+        endif
+    else (no, Auto)
+        :Usar tiempo recibido\ndel banco de caudal;
+    endif
+
+    if (¿Slider Peso Final\nen Manual?) then (sí)
+        :Leer Peso Final del\ncampo de texto;
+        if (¿Valor válido?) then (no)
+            :Advertencia: "Falta\npeso final manual";
+            stop
+        else (sí)
+        endif
+    else (no, Auto)
+        :Usar peso final recibido\ndel banco de caudal;
+    endif
+}
+
+if (¿Peso inicial, peso final\ny tiempo disponibles?) then (no)
+    :Advertencia: "Faltan datos\npara calcular caudal";
+    stop
+else (sí)
+endif
+
+partition "Cálculos" #E8F5E9 {
+    :Leer Densidad del campo de entrada;
+
+    :Peso Neto = Peso Final − Peso Inicial;
+
+    :Caudal Másico =
+    (Peso Final − Peso Inicial) / Tiempo
+    [kg/s];
+
+    :Caudal Volumétrico =
+    (Peso Final − Peso Inicial) / (Tiempo × Densidad)
+    [m³/s];
+}
+
+partition "Mostrar y Guardar" #E3F2FD {
+    :Actualizar indicadores en pantalla:
+    - Peso Neto (2 decimales)
+    - Caudal Másico (2 decimales)
+    - Caudal Volumétrico (2 decimales);
+
+    :Registrar datos en GestorEnsayo;
+
+    :Guardar reporte CSV
+    en carpeta del ensayo
+    (mediciones.csv);
+}
+
+partition "Resetear estado" #FFF3E0 {
+    :pendiente_resultados = False;
+
+    :Borrar peso inicial
+    (peso_inicial_val = None);
+
+    :Indicador Peso Inicial → "---"
+    (debe volver a tomarse);
+}
+
+stop
+
+@enduml

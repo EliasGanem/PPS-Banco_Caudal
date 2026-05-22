@@ -1,0 +1,68 @@
+@startuml modos_manual_automatico
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #E8EAF6
+skinparam activityBorderColor #283593
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Cambio de Modo Manual / Automático
+
+start
+
+:Usuario cambia posición
+del slider (toggle);
+
+if (¿Nueva posición?) then (Automático)
+    :Slider → texto "A"
+    Color: verde (#388E3C);
+
+    :Campo numérico →
+    state="disabled"
+    (no editable);
+
+    if (¿Es Peso Inicial\no Peso Final?) then (sí)
+        :Botón de medición →
+        state="normal"
+        (habilitado);
+    else (no, es Tiempo)
+        :Solo se deshabilita
+        el campo numérico;
+    endif
+
+    note right
+      En este modo el valor se obtiene
+      del banco de caudal al presionar
+      el botón o al finalizar el ensayo.
+    end note
+
+else (Manual)
+    :Slider → texto "M"
+    Color: naranja (#F57C00);
+
+    :Campo numérico →
+    state="normal"
+    (editable por el usuario);
+
+    if (¿Es Peso Inicial\no Peso Final?) then (sí)
+        :Botón de medición →
+        state="disabled"
+        (deshabilitado);
+    else (no, es Tiempo)
+        :Solo se habilita
+        el campo numérico;
+    endif
+
+    note right
+      En este modo el usuario
+      ingresa el valor manualmente.
+      Se valida que sea un número
+      flotante válido.
+    end note
+endif
+
+stop
+
+@enduml

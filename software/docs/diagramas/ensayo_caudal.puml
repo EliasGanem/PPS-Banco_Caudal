@@ -1,0 +1,133 @@
+@startuml ensayo_caudal
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #E8F5E9
+skinparam activityBorderColor #2E7D32
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+skinparam activityFontSize 12
+
+title Diagrama de Flujo: Ensayo de Caudal
+
+start
+
+partition "Validación de Precondiciones" #F5F5F5 {
+    if (¿Hay resultados\npendientes de calcular?) then (sí)
+        :Advertencia: "Debe calcular\nresultados del ensayo anterior";
+        stop
+    endif
+
+    if (¿Retorno en curso?) then (sí)
+        :Advertencia: "No se puede\niniciar durante retorno";
+        stop
+    endif
+
+    if (¿Modo peso inicial\n= Manual?) then (sí)
+        if (¿Valor numérico\nválido ingresado?) then (no)
+            :Advertencia: "Peso\ninicial inválido";
+            stop
+        else (sí)
+            :Leer peso inicial\ndel campo de texto;
+        endif
+    else (no, Auto)
+        if (¿Se tomó\npeso inicial?) then (no)
+            :Advertencia: "Falta\npeso inicial";
+            stop
+        else (sí)
+        endif
+    endif
+
+    if (¿Peso inicial\n>= PESO_MAXIMO?) then (sí)
+        :Advertencia: "Tanque lleno.\nDebe vaciarlo con Retorno.";
+        stop
+    endif
+
+    if (¿Duración y densidad\nválidas (> 0)?) then (no)
+        :Error: "Duración o\ndensidad inválidas";
+        stop
+    else (sí)
+    endif
+}
+
+partition "Inicio del Ensayo" #E8F5E9 {
+    :ensayo_en_curso = True;
+
+    :Limpiar resultados anteriores:
+    - Peso Final → "---"
+    - Peso Neto → "---"
+    - Caudal Másico → "---"
+    - Caudal Volumétrico → "---"
+    - Tiempo → "0.000"
+    - Reiniciar panel de imágenes;
+
+    :Deshabilitar botones:
+    - "Iniciar Ensayo"
+    - "Iniciar Retorno";
+
+    :GestorEnsayo.iniciar_nuevo_ensayo()
+    (crear carpeta con fecha/hora);
+
+    :Enviar comando
+    "INICIAR ENSAYO" al banco
+    (sin esperar respuesta);
+
+    :Capturar Imagen 1 (T=0)
+    [hilo secundario];
+
+    :Registrar tiempo de inicio
+    (reloj PC: perf_counter);
+}
+
+partition "Bucle del Ensayo (cada ~50 ms)" #E3F2FD {
+    :Calcular tiempo transcurrido
+    T = perf_counter - T_inicio;
+
+    :Actualizar indicador
+    de Tiempo en pantalla;
+
+    if (¿T >= próximo intervalo\nde foto y fotos < 6?) then (sí)
+        :Capturar foto siguiente
+        [hilo secundario];
+        :Mostrar foto en recuadro
+        correspondiente;
+    endif
+
+    if (¿T >= duración\nobjetivo?) then (sí)
+        #Pink:Fin del ensayo;
+    else (no)
+        :Reprogramar verificación
+        (after 50 ms);
+        detach
+    endif
+}
+
+partition "Finalización del Ensayo" #FFEBEE {
+    :Capturar última foto
+    si faltan;
+
+    :Enviar comando
+    "FINALIZAR ENSAYO" al banco
+    (esperar respuesta);
+
+    if (¿Se recibió tiempo\noficial del banco?) then (sí)
+        :tiempo_final = valor recibido;
+        :Actualizar indicador de Tiempo;
+    else (no, timeout)
+        :Tiempo → "---";
+        :Cambiar slider Tiempo\na modo Manual;
+        :Advertencia: "Ingrese\nel tiempo manualmente";
+    endif
+
+    :ensayo_en_curso = False;
+    :pendiente_resultados = True;
+
+    :Habilitar botones:
+    - "Iniciar Ensayo"
+    - "Iniciar Retorno";
+}
+
+stop
+
+@enduml
