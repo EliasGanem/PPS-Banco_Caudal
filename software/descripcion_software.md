@@ -334,7 +334,20 @@ El retorno permite devolver el fluido acumulado en el tanque a su origen.
 - La **ruta base** donde se crea la carpeta `ensayos_banco_caudal` se puede cambiar desde el ícono de carpeta en la interfaz. La ruta seleccionada se guarda en un archivo `config.json` para que persista entre reinicios de la aplicación.
 - Si no hay cámara conectada, el programa funciona normalmente sin tomar fotos.
 
-### 3.10. Terminal serie
+### 3.10. Vista previa de la cámara en tiempo real
+
+El usuario puede observar la transmisión en directo de la cámara USB mediante una ventana flotante secundaria.
+- **Acceso:** Se inicia mediante el botón con ícono de cámara (📷) ubicado en la barra de título del Panel 3 ("Imágenes del Ensayo").
+- **Visualización y Cierre:**
+  - Abre una ventana secundaria de tamaño fijo (640×480 px).
+  - La transmisión se actualiza periódicamente a ~30 FPS (un fotograma cada ~33 ms).
+  - Se puede cerrar la ventana en cualquier momento mediante la cruz convencional (X). Al cerrarse, se detiene el timer periódico de actualización del visor y se libera el recurso.
+- **Concurrencia con la Captura de Fotos:**
+  - Para evitar conflictos cuando coinciden la actualización de la vista previa y la captura de fotos fija del ensayo, la solicitud de fotogramas para la vista previa se realiza de forma no bloqueante.
+  - Si la cámara está ocupada guardando una de las 6 fotografías del ensayo, el visor simplemente omite ese fotograma y continúa con el siguiente, garantizando que el ensayo capture la imagen sin demoras y sin bloquear la interfaz de usuario.
+  - En caso de no detectar una cámara conectada, la ventana muestra el mensaje "No hay cámara conectada".
+
+### 3.11. Terminal serie
 
 La terminal serie permite enviar comandos directamente al banco de caudal y ver las tramas de datos en ambas direcciones (TX y RX).
 
@@ -345,6 +358,6 @@ La terminal serie permite enviar comandos directamente al banco de caudal y ver 
     - Limpiar el historial de la terminal.
 - **Nota:** la terminal funciona de forma transparente junto con los comandos enviados automáticamente por el programa. Cualquier comunicación (automática o manual) se refleja en la terminal si está desbloqueada.
 
-### 3.11. Peso máximo del tanque
+### 3.12. Peso máximo del tanque
 
 Si al finalizar un ensayo el peso final obtenido es **mayor o igual** al valor de `PESO_MAXIMO_TANQUE_KG`, no se permite iniciar un nuevo ensayo. Se muestra una advertencia indicando que se debe vaciar el tanque usando la función de retorno.
