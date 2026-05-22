@@ -221,6 +221,7 @@ Gestiona el ciclo de vida de un ensayo: carpetas, datos y reportes.
 | `registrar_dato(param, valor)` | Agrega un par clave-valor al diccionario de datos del ensayo. |
 | `guardar_reporte_csv()` | Genera `mediciones.csv` con encoding `utf-8-sig` (compatible con Excel). |
 | `obtener_ruta_siguiente_imagen()` | Devuelve la ruta para la próxima imagen (`img_1.jpg` a `img_6.jpg`). |
+| `eliminar_carpeta_actual()` | Borra el directorio físico del ensayo actual y todo su contenido, y setea `carpeta_actual` a `None`. |
 
 ---
 
@@ -402,6 +403,17 @@ Diagrama de secuencia que muestra la interacción entre:
 - **Banco de Caudal:** hardware destino.
 
 Se ilustran dos escenarios: envío con respuesta y envío sin respuesta.
+
+---
+
+### 5.11. Restablecimiento del ensayo (Reset)
+
+Describe el flujo cuando se presiona el botón **"R"** (Reset):
+1. **Validación:** Se verifica que no haya un retorno en curso. Si hay un retorno activo, se muestra una advertencia y se cancela la operación.
+2. **Forzar parada:** Se establece `ensayo_en_curso = False` y se vuelven a habilitar los botones de inicio en la interfaz.
+3. **Limpieza de variables:** Se borran las referencias a pesos y tiempos registrados, volviendo los campos de la UI a `"---"` y `"0.000"`.
+4. **Limpieza física de datos:** Se invoca a `eliminar_carpeta_actual()` en `GestorEnsayo`, la cual remueve por completo el directorio de la medición actual (`ensayos_banco_caudal/<fecha_hora>`) con todas las imágenes tomadas y archivos CSV temporales.
+5. **Limpieza de UI:** Se limpia la galería visual de imágenes en la pantalla principal de la aplicación.
 
 ---
 

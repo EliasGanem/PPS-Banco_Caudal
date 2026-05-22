@@ -798,6 +798,9 @@ class AppPrincipal(ctk.CTk):
         self.var_c_volumetrico.set("---")
         self.var_tiempo.set("0.000")
 
+        # Borrar la carpeta de la medición con todo su contenido
+        self.gestor.eliminar_carpeta_actual()
+
         self.panel_img.reiniciar_panel()
         self.var_advertencia.set("")
         logger.info("Ensayo reseteado. Listo para iniciar uno nuevo.")

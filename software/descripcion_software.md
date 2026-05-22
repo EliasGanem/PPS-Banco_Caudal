@@ -136,7 +136,10 @@ Lista de cuatro campos de solo lectura:
 - **"Caudal Másico [kg/s]"**: campo numérico.
 - **"Caudal Volumétrico [m³/s]"**: campo numérico.
 
-Debajo de los campos, un botón **"Calcular"** (verde) que procesa las ecuaciones y muestra los resultados.
+Debajo de los campos, se encuentran los botones de acción para los resultados:
+- Un botón **"Calcular"** (verde) que ocupa el 70% del ancho del contenedor, el cual procesa las ecuaciones y muestra los resultados.
+- Un botón **"R" (Reset)** (rojo) que ocupa el 15% del ancho del contenedor, el cual permite descartar o limpiar el ensayo actual para iniciar uno nuevo directamente.
+
 
 #### Panel 3 — "Imágenes del Ensayo"
 
@@ -273,14 +276,23 @@ Al presionar el botón **"Calcular"**:
     - Se borra el valor de peso inicial, indicando que se debe volver a medir o ingresar para el próximo ensayo.
     - Se desbloquea la posibilidad de iniciar un nuevo ensayo.
 
-### 3.6. Medición de peso (fuera de un ensayo)
+### 3.6. Restablecimiento del ensayo (Botón R)
+
+El botón **"R"** (rojo) permite limpiar los valores del ensayo y descartar la medición actual para poder iniciar un nuevo ensayo inmediatamente, sin necesidad de calcular resultados primero.
+- **Funcionamiento y comportamiento:**
+  - Solo está bloqueado si hay un retorno en curso.
+  - Al presionarse, restablece todos los valores visuales en pantalla (`"---"` o `"0.000"`).
+  - Pone el estado `ensayo_en_curso` en falso y habilita de nuevo los botones para iniciar ensayo y retorno.
+  - **Eliminación de datos:** Se borra de forma completa la carpeta física de la medición creada para ese ensayo y todo su contenido (imágenes capturadas, etc.), descartando así todos los archivos asociados.
+
+### 3.7. Medición de peso (fuera de un ensayo)
 
 Cuando **no** se está ensayando ni en retorno, al presionar el botón **"Peso Inicial"** o **"Peso Final"** (en modo automático):
 - Se envía el comando `MEDICION BALANZA` al banco de caudal.
 - Se espera recibir el valor de peso.
 - El valor se muestra en el campo correspondiente con 2 decimales.
 
-### 3.7. Retorno
+### 3.8. Retorno
 
 El retorno permite devolver el fluido acumulado en el tanque a su origen.
 
@@ -303,7 +315,7 @@ El retorno permite devolver el fluido acumulado en el tanque a su origen.
     - Se rehabilitan los botones "Iniciar Ensayo" e "Iniciar Retorno".
     - Se deshabilita "Finalizar Retorno".
 
-### 3.8. Captura y almacenamiento de imágenes
+### 3.9. Captura y almacenamiento de imágenes
 
 - Las imágenes se capturan usando **OpenCV (cv2)** en un hilo secundario.
 - Se toman **6 fotos** por ensayo: la primera en T=0 y las 5 restantes distribuidas equitativamente a lo largo de la duración del ensayo.
@@ -322,7 +334,7 @@ El retorno permite devolver el fluido acumulado en el tanque a su origen.
 - La **ruta base** donde se crea la carpeta `ensayos_banco_caudal` se puede cambiar desde el ícono de carpeta en la interfaz. La ruta seleccionada se guarda en un archivo `config.json` para que persista entre reinicios de la aplicación.
 - Si no hay cámara conectada, el programa funciona normalmente sin tomar fotos.
 
-### 3.9. Terminal serie
+### 3.10. Terminal serie
 
 La terminal serie permite enviar comandos directamente al banco de caudal y ver las tramas de datos en ambas direcciones (TX y RX).
 
@@ -333,6 +345,6 @@ La terminal serie permite enviar comandos directamente al banco de caudal y ver 
     - Limpiar el historial de la terminal.
 - **Nota:** la terminal funciona de forma transparente junto con los comandos enviados automáticamente por el programa. Cualquier comunicación (automática o manual) se refleja en la terminal si está desbloqueada.
 
-### 3.10. Peso máximo del tanque
+### 3.11. Peso máximo del tanque
 
 Si al finalizar un ensayo el peso final obtenido es **mayor o igual** al valor de `PESO_MAXIMO_TANQUE_KG`, no se permite iniciar un nuevo ensayo. Se muestra una advertencia indicando que se debe vaciar el tanque usando la función de retorno.

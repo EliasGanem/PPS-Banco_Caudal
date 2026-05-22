@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 import logging
 import json
+import shutil
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -84,3 +85,14 @@ class GestorEnsayo:
         self.imagenes_tomadas += 1
         ruta_img = self.carpeta_actual / f"img_{self.imagenes_tomadas}.jpg"
         return str(ruta_img)
+
+    def eliminar_carpeta_actual(self) -> None:
+        """Elimina el directorio del ensayo actual con todo su contenido."""
+        if self.carpeta_actual and self.carpeta_actual.exists():
+            try:
+                shutil.rmtree(self.carpeta_actual)
+                logger.info(f"Directorio de ensayo eliminado: {self.carpeta_actual}")
+            except Exception as e:
+                logger.error(f"Error al eliminar directorio de ensayo {self.carpeta_actual}: {e}")
+            finally:
+                self.carpeta_actual = None
