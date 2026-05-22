@@ -222,8 +222,16 @@ class AppPrincipal(ctk.CTk):
             ent = ctk.CTkEntry(frame_res_grid, textvariable=var, state="disabled", fg_color="#D3D3D3", text_color="#000000", width=80)
             ent.grid(row=i+1, column=1, padx=(10, 0), pady=4, sticky="e")
             
-        self.btn_calcular = ctk.CTkButton(self.frame_resultados, text="Calcular", command=self.calcular_caudales, fg_color="#388E3C", hover_color="#4CAF50", font=("Inter", 16, "bold"))
-        self.btn_calcular.pack(fill="x", padx=15, pady=(5, 15))
+        frame_botones_res = ctk.CTkFrame(self.frame_resultados, fg_color="transparent")
+        frame_botones_res.pack(fill="x", padx=15, pady=(5, 15))
+        frame_botones_res.grid_columnconfigure(0, weight=70)
+        frame_botones_res.grid_columnconfigure(1, weight=15)
+        
+        self.btn_calcular = ctk.CTkButton(frame_botones_res, text="Calcular", command=self.calcular_caudales, fg_color="#388E3C", hover_color="#4CAF50", font=("Inter", 16, "bold"))
+        self.btn_calcular.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        self.btn_reset = ctk.CTkButton(frame_botones_res, text="R", command=self.resetear_ensayo, fg_color="#D32F2F", hover_color="#F44336", font=("Inter", 16, "bold"), width=30)
+        self.btn_reset.grid(row=0, column=1, sticky="ew", padx=(5, 0))
 
         # --- Bloque 3: Imágenes del Ensayo ---
         self.frame_imagenes = ContenedorConTitulo(self.main_container, titulo="Imágenes del Ensayo")
@@ -235,10 +243,10 @@ class AppPrincipal(ctk.CTk):
             font=("Inter", 14), fg_color="#1976D2", hover_color="#2196F3",
             command=self.abrir_visor_camara
         )
-        self.btn_visor_camara.place(x=200, y=6)
+        self.btn_visor_camara.place(x=170, y=10)
         
         self.panel_img = PanelImagenes(self.frame_imagenes)
-        self.panel_img.pack(fill="x", padx=10, pady=(35, 15))
+        self.panel_img.pack(fill="x", padx=10, pady=(45, 15))
 
         # --- Bloque 4: Terminal ---
         self.frame_terminal = ContenedorConTitulo(self.main_container, titulo="Terminal")
@@ -767,3 +775,25 @@ class AppPrincipal(ctk.CTk):
             
         except Exception as e:
             logger.error(f"Error calculando caudal: {e}")
+
+    def resetear_ensayo(self):
+        """Resetea los valores del ensayo para poder iniciar uno nuevo sin calcular resultados."""
+        if self.ensayo_en_curso or self.retorno_en_curso:
+            self._mostrar_advertencia("No se puede resetear mientras hay un ensayo o retorno en curso.")
+            return
+
+        self.pendiente_resultados = False
+        self.peso_inicial_val = None
+        self.peso_final_val = None
+        self.tiempo_final_val = None
+
+        self.var_peso_ini.set("---")
+        self.var_peso_fin.set("---")
+        self.var_peso_neto.set("---")
+        self.var_c_masico.set("---")
+        self.var_c_volumetrico.set("---")
+        self.var_tiempo.set("0.000")
+
+        self.panel_img.reiniciar_panel()
+        self.var_advertencia.set("")
+        logger.info("Ensayo reseteado. Listo para iniciar uno nuevo.")
