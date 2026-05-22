@@ -37,6 +37,7 @@ Los siguientes parámetros son configurables desde el archivo `config.py` para q
 | `TERMINADOR_RX` | Terminador esperado en las respuestas del banco | `\x00` (Null) |
 | `TERMINADOR_TX` | Terminador que se envía al banco | `\x00` (Null) |
 | `TIME_OUT_USB` | Timeout de lectura en segundos | 0.5 |
+| `TIME_OUT_USB_RELOJ` | Timeout de lectura en segundos para el reloj | 1 |
 | `BAUDRATE_USB` | Velocidad de comunicación | 115200 |
 | `VID_DEFECTO` | Vendor ID para autodetección del puerto | `"1A86"` |
 | `PID_DEFECTO` | Product ID para autodetección del puerto | `"55D4"` |
@@ -196,7 +197,7 @@ Tanto los comandos enviados como los datos recibidos son cadenas de caracteres A
 
 ### 3.3. Modos de operación: Manual y Automático
 
-Cada campo de medición (Peso Inicial, Peso Final y Tiempo) tiene un slider que permite seleccionar entre modo **Manual** y **Automático**. El modo es independiente para cada campo.
+Los campos: Peso Inicial, Peso Final y Tiempo tienen un slider que permite seleccionar entre modo **Manual** y **Automático**. El modo es independiente para cada campo.
 
 - **Modo Automático (A):** el valor se obtiene del banco de caudal. El campo numérico está deshabilitado (no se puede editar) y el botón de medición está habilitado. Al iniciar el programa, todos los campos comienzan en este modo.
 - **Modo Manual (M):** el campo numérico se habilita para que el usuario ingrese el valor manualmente. El botón de medición se deshabilita. Los valores ingresados se usan para los cálculos.
@@ -277,7 +278,7 @@ Cuando **no** se está ensayando ni en retorno, al presionar el botón **"Peso I
 - Se espera recibir el valor de peso.
 - El valor se muestra en el campo correspondiente con 2 decimales.
 
-### 3.7. Retorno de fluido
+### 3.7. Retorno
 
 El retorno permite devolver el fluido acumulado en el tanque a su origen.
 

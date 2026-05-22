@@ -1,0 +1,54 @@
+@startuml medicion_peso
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #E3F2FD
+skinparam activityBorderColor #1565C0
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Medición de Peso (Inicial / Final)
+
+start
+
+:Usuario presiona botón
+"Peso Inicial" o "Peso Final";
+
+if (¿Ensayo en curso\no retorno en curso?) then (sí)
+    :Acción ignorada;
+    stop
+endif
+
+:Marcar internamente qué
+medición se espera:
+_esperando_peso_ini = True
+o _esperando_peso_fin = True;
+
+:Enviar "MEDICION BALANZA"
+al banco de caudal
+[hilo secundario];
+
+:Esperar respuesta
+del banco;
+
+if (¿Se recibió respuesta\nválida?) then (sí)
+    :Parsear valor a float;
+
+    if (¿Es peso inicial?) then (sí)
+        :peso_inicial_val = valor;
+        :Mostrar en campo
+        "Peso Inicial" (2 decimales);
+    else (no, es peso final)
+        :peso_final_val = valor;
+        :Mostrar en campo
+        "Peso Final" (2 decimales);
+    endif
+else (no, timeout)
+    :Limpiar flag de espera;
+    :No se actualiza el campo;
+endif
+
+stop
+
+@enduml

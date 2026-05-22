@@ -1,0 +1,125 @@
+@startuml arquitectura
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #333333
+skinparam arrowColor #333333
+skinparam classBorderColor #555555
+skinparam classFontSize 13
+skinparam packageFontSize 14
+skinparam defaultFontName Inter
+
+title Arquitectura del Sistema - Banco de Caudal
+
+package "Punto de Entrada" #E3F2FD {
+    class "main.py" as main {
+        + configurar_logging()
+        + main()
+    }
+}
+
+package "config" #FFF3E0 {
+    class "config.py" as config {
+        TERMINADOR_RX
+        TERMINADOR_TX
+        TIME_OUT_USB
+        BAUDRATE_USB
+        VID_DEFECTO
+        PID_DEFECTO
+        DURACION_ENSAYO_POR_DEFECTO_S
+        PERIODO_MEDICION_BALANZA_RETORNO_MS
+        PESO_MINIMO_RETORNO_KG
+        PESO_MAXIMO_TANQUE_KG
+        CONTRASENIA_TERMINAL
+    }
+}
+
+package "ui" #E8F5E9 {
+    class "AppPrincipal" as app {
+        - driver_serie: ComunicacionSerie
+        - driver_camara: CamaraUSB
+        - gestor: GestorEnsayo
+        - ensayo_en_curso: bool
+        - retorno_en_curso: bool
+        --
+        + construir_ui()
+        + inicializar_hardware()
+        + iniciar_ensayo()
+        + calcular_caudales()
+        + iniciar_retorno()
+        + finalizar_retorno()
+        + tomar_peso_inicial()
+        + tomar_peso_final()
+    }
+
+    class "ContenedorConTitulo" as cont
+    class "IndicadorConexion" as ind
+    class "PanelImagenes" as pimg
+    class "ToolTip" as tip
+}
+
+package "core" #F3E5F5 {
+    class "GestorEnsayo" as gestor {
+        - carpeta_base: Path
+        - carpeta_actual: Path
+        - datos_ensayo: Dict
+        --
+        + iniciar_nuevo_ensayo(): Path
+        + registrar_dato()
+        + guardar_reporte_csv()
+        + obtener_ruta_siguiente_imagen(): str
+        + cambiar_ruta_base()
+    }
+
+    class "calculador_caudal" as calc {
+        + calcular_caudal_masico()
+        + calcular_caudal_volumetrico()
+    }
+}
+
+package "drivers" #FFEBEE {
+    class "ComunicacionSerie" as serie {
+        - puerto_serial: Serial
+        - vid_defecto: str
+        - pid_defecto: str
+        --
+        + listar_puertos(): List[str]
+        + autodetectar_puerto(): str
+        + conectar(puerto): bool
+        + desconectar()
+        + enviar_comando_async()
+        + set_terminal_callback()
+    }
+
+    class "CamaraUSB" as cam {
+        - captura: VideoCapture
+        - indice_camara: int
+        --
+        + listar_camaras_disponibles(): List[str]
+        + conectar(indice): bool
+        + desconectar()
+        + tomar_foto(ruta, callback)
+    }
+}
+
+' --- Relaciones ---
+main --> app : crea
+main --> serie : crea
+main --> cam : crea
+main --> gestor : crea
+main ..> config : lee
+
+app --> serie : usa
+app --> cam : usa
+app --> gestor : usa
+app --> calc : usa
+app --> cont : usa
+app --> ind : usa
+app --> pimg : usa
+app --> tip : usa
+app ..> config : lee
+
+serie ..> config : lee
+gestor --> "config.json" : lee/escribe
+
+@enduml

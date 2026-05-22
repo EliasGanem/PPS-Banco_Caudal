@@ -1,0 +1,67 @@
+@startuml captura_imagenes
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #FFEBEE
+skinparam activityBorderColor #C62828
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Captura y Almacenamiento de Imágenes
+
+start
+
+:Se solicita captura de imagen
+(llamada desde bucle de ensayo);
+
+if (¿fotos_tomadas >= 6?) then (sí)
+    :No hacer nada
+    (máximo alcanzado);
+    stop
+endif
+
+:idx_foto = fotos_tomadas;
+
+:Obtener ruta destino:
+GestorEnsayo.obtener_ruta_siguiente_imagen()
+→ "carpeta_ensayo/img_N.jpg";
+
+:fotos_tomadas++;
+
+partition "Hilo Secundario (CamaraUSB.tomar_foto)" #FFF8E1 {
+    if (¿Cámara conectada?) then (sí)
+        :Descartar frame viejo
+        del buffer (read());
+
+        :Leer frame actual
+        (read());
+
+        if (¿Frame válido?) then (sí)
+            :Guardar imagen con
+            cv2.imwrite(ruta, frame);
+            :exito = True;
+        else (no)
+            :Error: "No se pudo\nleer el frame";
+            :exito = False;
+        endif
+    else (no)
+        :Warning: "Sin cámara\nconectada";
+        :exito = False;
+    endif
+}
+
+if (¿exito?) then (sí)
+    :Callback → UI (hilo principal):
+    panel_img.actualizar_imagen(idx, ruta);
+
+    :Cargar imagen con PIL
+    y mostrar en recuadro
+    correspondiente (120x120 px);
+else (no)
+    :No se actualiza el recuadro;
+endif
+
+stop
+
+@enduml

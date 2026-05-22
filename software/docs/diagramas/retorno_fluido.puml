@@ -1,0 +1,79 @@
+@startuml retorno_fluido
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #FFF3E0
+skinparam activityBorderColor #E65100
+skinparam activityDiamondBackgroundColor #FFECB3
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Retorno de Fluido
+
+start
+
+if (¿Ensayo en curso?) then (sí)
+    :No se puede iniciar\nretorno durante ensayo;
+    stop
+endif
+
+if (¿Retorno ya en curso?) then (sí)
+    :Retorno ya activo;
+    stop
+endif
+
+:retorno_en_curso = True;
+
+:Deshabilitar botones:
+- "Iniciar Ensayo"
+- "Iniciar Retorno";
+
+:Habilitar botón
+"Finalizar Retorno";
+
+:Enviar comando
+"INICIAR RETORNO" al banco
+(sin esperar respuesta);
+
+partition "Polling Periódico de Peso" #FFF8E1 {
+    repeat
+
+        if (¿Hay medición\nen curso?) then (sí)
+            :Esperar próximo ciclo;
+        else (no)
+            :Enviar "MEDICION BALANZA"
+            [hilo secundario];
+
+            :Recibir valor de peso;
+        endif
+
+        :Esperar PERIODO_MEDICION_
+        BALANZA_RETORNO_MS;
+
+    repeat while (¿retorno_en_curso\nY peso > PESO_MINIMO?) is (sí)
+}
+
+if (¿Peso <= PESO_MINIMO?) then (sí)
+    :Detención automática
+    por peso mínimo alcanzado;
+else (no)
+    :Detención manual
+    (usuario presionó\n"Finalizar Retorno");
+endif
+
+:retorno_en_curso = False;
+
+:Enviar comando
+"FINALIZAR RETORNO" al banco
+(sin esperar respuesta);
+
+:Habilitar botones:
+- "Iniciar Ensayo"
+- "Iniciar Retorno";
+
+:Deshabilitar botón
+"Finalizar Retorno";
+
+stop
+
+@enduml

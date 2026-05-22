@@ -1,0 +1,60 @@
+@startuml comunicacion_serie
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceArrowColor #333333
+skinparam sequenceParticipantBackgroundColor #E3F2FD
+skinparam sequenceParticipantBorderColor #1565C0
+skinparam sequenceLifeLineBorderColor #90CAF9
+skinparam sequenceGroupBackgroundColor #F5F5F5
+skinparam defaultFontName Inter
+
+title Diagrama de Secuencia: Comunicación Serie (enviar_comando_async)
+
+actor "UI Principal\n(Hilo Main)" as UI
+participant "ComunicacionSerie" as CS
+participant "Hilo\nSecundario" as Hilo
+participant "Banco de\nCaudal" as BC
+
+== Envío de Comando con Respuesta ==
+
+UI -> CS : enviar_comando_async(comando,\n  espera_respuesta=True,\n  callback)
+activate CS
+
+CS -> Hilo : Thread(target=tarea).start()
+activate Hilo
+CS --> UI : retorna inmediatamente
+deactivate CS
+
+note right of UI : La UI no se bloquea
+
+Hilo -> Hilo : Limpiar buffers\n(reset_input/output_buffer)
+
+Hilo -> BC : TX: comando + TERMINADOR_TX
+note right of Hilo : terminal_callback("TX", trama)
+
+Hilo -> BC : Leer respuesta byte a byte\nhasta encontrar TERMINADOR_RX\no timeout
+
+BC --> Hilo : RX: datos + TERMINADOR_RX
+note right of Hilo : terminal_callback("RX", datos)
+
+Hilo -> Hilo : Quitar terminador\ny decodificar ASCII
+
+Hilo -> UI : callback(comando, respuesta)
+deactivate Hilo
+
+UI -> UI : after(0, _procesar_respuesta_ui)\n[ejecución segura en hilo principal]
+
+== Envío de Comando sin Respuesta ==
+
+UI -> CS : enviar_comando_async(comando,\n  espera_respuesta=False)
+activate CS
+
+CS -> Hilo : Thread(target=tarea).start()
+activate Hilo
+CS --> UI : retorna inmediatamente
+deactivate CS
+
+Hilo -> BC : TX: comando + TERMINADOR_TX
+deactivate Hilo
+
+@enduml

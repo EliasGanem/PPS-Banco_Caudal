@@ -3,7 +3,7 @@ import serial.tools.list_ports
 import threading
 import logging
 from typing import List, Optional, Callable
-from config import TERMINADOR_RX, TERMINADOR_TX, TIME_OUT_USB, BAUDRATE_USB, VID_DEFECTO, PID_DEFECTO, TIME_OUT_ENSAYO
+from config import TERMINADOR_RX, TERMINADOR_TX, TIME_OUT_USB, BAUDRATE_USB, VID_DEFECTO, PID_DEFECTO, TIME_OUT_USB_RELOJ
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class ComunicacionSerie:
                 self.puerto_serial.bytesize = serial.EIGHTBITS
                 self.puerto_serial.parity = serial.PARITY_NONE
                 self.puerto_serial.stopbits = serial.STOPBITS_ONE
-                self.puerto_serial.timeout = TIME_OUT_ENSAYO # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
+                self.puerto_serial.timeout = TIME_OUT_USB_RELOJ # Aumentado para dar tiempo al banco de procesar y estabilizar balanza
                 
                 # Deshabilitar las señales de control para evitar reinicios en microcontroladores (ESP32/Arduino)
                 self.puerto_serial.dtr = False

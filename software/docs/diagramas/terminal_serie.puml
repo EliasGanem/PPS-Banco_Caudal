@@ -1,0 +1,66 @@
+@startuml terminal_serie
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activityBackgroundColor #ECEFF1
+skinparam activityBorderColor #37474F
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #E65100
+skinparam arrowColor #333333
+skinparam defaultFontName Inter
+
+title Diagrama de Flujo: Terminal Serie
+
+start
+
+:Panel Terminal visible
+(bloqueado por defecto);
+
+:Usuario ingresa contraseña
+y presiona "Desbloquear";
+
+if (¿Contraseña ==\nCONTRASENIA_TERMINAL?) then (sí)
+    :Ocultar panel de autenticación;
+
+    :Mostrar terminal:
+    - Textbox (historial TX/RX)
+    - Campo de comando
+    - Selector de terminador
+    - Botones: Enviar, Limpiar, Bloquear;
+
+    partition "Uso de la Terminal" #F5F5F5 {
+        :La terminal muestra en tiempo real
+        todas las comunicaciones:
+        "> TX: comando\0"
+        "< RX: respuesta\0";
+
+        fork
+            :Usuario escribe comando
+            y presiona "Enviar" o Enter;
+
+            :Obtener terminador seleccionado
+            del ComboBox (\\0, \\n, \\r, \\r\\n, Ninguno);
+
+            :enviar_comando_async(comando,
+              espera_respuesta=True,
+              terminador_tx=seleccionado);
+
+            :Limpiar campo de entrada;
+        fork again
+            :Usuario presiona "Limpiar";
+            :Borrar contenido del textbox;
+        fork again
+            :Usuario presiona "Bloquear";
+            :Ocultar terminal;
+            :Mostrar panel de autenticación;
+        end fork
+    }
+else (no)
+    :Advertencia:
+    "Contraseña incorrecta";
+
+    :Limpiar campo de contraseña;
+endif
+
+stop
+
+@enduml
