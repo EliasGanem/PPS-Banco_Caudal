@@ -52,4 +52,10 @@
 #define TIME_OUT_BALANZA 3000    // milisegundos
 #define TIME_OUT_RELOJ 1000      // milisegundos
 
+/**
+ * @brief Comando para la comunicacion con el Reloj
+ */
+#define COMANDO_RELOJ                                                          \
+  100 // valor que se debe enviar al reloj para que este envie el tiempo
+
 #endif // BOARD_CONFIG_H

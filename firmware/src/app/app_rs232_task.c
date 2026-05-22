@@ -76,8 +76,7 @@ bool App_RS232_ReadReloj(char *out_buffer) {
 
     HAL_UART_Flush(HAL_UART_PORT_RS232);
 
-    // Enviar comando PEDIR TIEMPO (entero 100 = 0x64)
-    uint8_t cmd = 100;
+    uint8_t cmd = COMANDO_RELOJ;
     HAL_UART_Write(HAL_UART_PORT_RS232, &cmd, 1);
 
     // Leer 2 bytes
