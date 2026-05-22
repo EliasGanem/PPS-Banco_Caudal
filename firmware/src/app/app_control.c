@@ -85,9 +85,6 @@ void App_Control_Task(void *pvParameters) {
         if (App_RS232_ReadBalanza(balanza_buf)) {
           // El buffer ya viene terminado en nulo desde la función de lectura
           App_USB_SendString(balanza_buf);
-          // También se debe mandar el \0 según la regla ("P.PP\0")
-          // uint8_t nulo = '\0';
-          // App_USB_SendBytes(&nulo, 1);
         }
         break;
       }
@@ -108,8 +105,6 @@ void App_Control_Task(void *pvParameters) {
 
         if (b_ok) {
           App_USB_SendString(balanza_buf);
-          // uint8_t terminador = CMD_TERMINATOR_USB;
-          // App_USB_SendBytes(&terminador, 1);
         }
         if (r_ok) {
           App_USB_SendBytes((const uint8_t *)reloj_buf, 9);
