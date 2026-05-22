@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import logging
 import time
+import cv2
+from PIL import Image
 from typing import Optional
 from tkinter import filedialog
 from ui.componentes_ui import IndicadorConexion, PanelImagenes, ContenedorConTitulo, ToolTip
@@ -47,6 +49,10 @@ class AppPrincipal(ctk.CTk):
         self.var_modo_tiempo = ctk.BooleanVar(value=True)
         
         self.pendiente_resultados = False
+        
+        # Variables de estado del visor de cámara
+        self._visor_camara = None
+        self._visor_activo = False
         
         self.construir_ui()
         
@@ -222,6 +228,15 @@ class AppPrincipal(ctk.CTk):
         # --- Bloque 3: Imágenes del Ensayo ---
         self.frame_imagenes = ContenedorConTitulo(self.main_container, titulo="Imágenes del Ensayo")
         self.frame_imagenes.pack(padx=20, pady=(5, 5), fill="x")
+        
+        # Botón de vista previa de cámara junto al título
+        self.btn_visor_camara = ctk.CTkButton(
+            self.frame_imagenes, text="📷", width=30, height=25,
+            font=("Inter", 14), fg_color="#1976D2", hover_color="#2196F3",
+            command=self.abrir_visor_camara
+        )
+        self.btn_visor_camara.place(x=200, y=6)
+        
         self.panel_img = PanelImagenes(self.frame_imagenes)
         self.panel_img.pack(fill="x", padx=10, pady=(35, 15))
 
@@ -391,6 +406,63 @@ class AppPrincipal(ctk.CTk):
         if nueva_ruta:
             self.gestor.cambiar_ruta_base(nueva_ruta)
             logger.info(f"Ruta de ensayos actualizada por el usuario a: {nueva_ruta}")
+
+    # --- Visor de Cámara en Tiempo Real ---
+    def abrir_visor_camara(self):
+        """Abre una ventana con la vista previa en tiempo real de la cámara."""
+        # Si ya está abierta, solo enfocarla
+        if self._visor_camara is not None:
+            try:
+                self._visor_camara.focus()
+                return
+            except Exception:
+                self._visor_camara = None
+
+        self._visor_camara = ctk.CTkToplevel(self)
+        self._visor_camara.title("Vista Previa — Cámara")
+        self._visor_camara.geometry("660x540")
+        self._visor_camara.configure(fg_color="#242424")
+        self._visor_camara.resizable(False, False)
+        self._visor_camara.protocol("WM_DELETE_WINDOW", self._cerrar_visor_camara)
+        # Evitar que aparezca detrás de la ventana principal
+        self._visor_camara.after(10, self._visor_camara.lift)
+
+        self._lbl_visor = ctk.CTkLabel(
+            self._visor_camara, text="Conectando cámara...",
+            font=("Inter", 16), text_color="#AAAAAA",
+            width=640, height=480, corner_radius=8, fg_color="#1e1e1e"
+        )
+        self._lbl_visor.pack(padx=10, pady=10)
+
+        self._visor_activo = True
+        self._actualizar_visor_camara()
+
+    def _actualizar_visor_camara(self):
+        """Actualiza la imagen del visor con el frame actual de la cámara (~30 FPS)."""
+        if not self._visor_activo:
+            return
+
+        frame = self.driver_camara.obtener_frame()
+        if frame is not None:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img_pil = Image.fromarray(frame_rgb)
+            img_pil.thumbnail((640, 480), Image.LANCZOS)
+            img_ctk = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=img_pil.size)
+            self._lbl_visor.configure(image=img_ctk, text="")
+            # Mantener referencia para evitar garbage collection
+            self._lbl_visor._img_ref = img_ctk
+        elif not self.driver_camara.esta_conectada():
+            self._lbl_visor.configure(text="No hay cámara conectada", image="")
+
+        if self._visor_activo:
+            self.after(33, self._actualizar_visor_camara)
+
+    def _cerrar_visor_camara(self):
+        """Cierra la ventana del visor de cámara."""
+        self._visor_activo = False
+        if self._visor_camara is not None:
+            self._visor_camara.destroy()
+            self._visor_camara = None
 
     # --- Lógica de Terminal ---
     def _on_terminal_data(self, direccion: str, datos: bytes):

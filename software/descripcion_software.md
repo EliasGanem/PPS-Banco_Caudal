@@ -140,7 +140,9 @@ Debajo de los campos, un botón **"Calcular"** (verde) que procesa las ecuacione
 
 #### Panel 3 — "Imágenes del Ensayo"
 
-Ocupa el ancho completo de la interfaz. Contiene una galería horizontal (grid de 1 fila × 6 columnas) con marcadores de posición (placeholders):
+Ocupa el ancho completo de la interfaz. Junto al título de la sección hay un botón con ícono de cámara (📷) que al ser presionado abre una ventana secundaria mostrando la **vista previa en tiempo real** de la cámara USB. Esta ventana puede cerrarse en cualquier momento sin afectar el funcionamiento del programa.
+
+Contiene una galería horizontal (grid de 1 fila × 6 columnas) con marcadores de posición (placeholders):
 - Cada marcador tiene forma cuadrada con esquinas redondeadas y fondo gris claro.
 - En el centro llevan el ícono de una cámara fotográfica.
 - Debajo de cada cuadro aparece la etiqueta: "Imagen 1", "Imagen 2", ..., "Imagen 6".

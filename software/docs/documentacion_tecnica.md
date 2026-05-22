@@ -204,6 +204,7 @@ Encapsula la interacción con la cámara USB mediante OpenCV.
 | `conectar(indice)` | Abre la cámara y solicita resolución máxima (10000×10000 para forzar la nativa). |
 | `desconectar()` | Libera la cámara. |
 | `esta_conectada()` | Indica si hay cámara activa (thread-safe). |
+| `obtener_frame()` | Obtiene un frame para vista previa en tiempo real. Usa lock **no bloqueante** (`acquire(blocking=False)`) para no interferir con `tomar_foto()`. Retorna el frame BGR o `None`. |
 | `tomar_foto(ruta, callback)` | Captura un frame en un hilo secundario, lo guarda en disco y llama al callback `(exito, ruta)`. Descarta un frame previo para evitar imágenes viejas del buffer. |
 
 ---
@@ -259,6 +260,8 @@ Es la clase principal de la aplicación. Hereda de `ctk.CTk` y contiene:
 | `var_modo_peso_ini` | `BooleanVar` | True = Auto, False = Manual (peso inicial). |
 | `var_modo_peso_fin` | `BooleanVar` | True = Auto, False = Manual (peso final). |
 | `var_modo_tiempo` | `BooleanVar` | True = Auto, False = Manual (tiempo). |
+| `_visor_camara` | `CTkToplevel \| None` | Referencia a la ventana del visor de cámara (None si está cerrada). |
+| `_visor_activo` | `bool` | Indica si el loop de actualización del visor debe seguir ejecutándose. |
 
 #### Interceptor de advertencias
 
@@ -363,7 +366,21 @@ Flujo al cambiar un slider entre Manual y Automático:
 
 ---
 
-### 5.8. Terminal serie
+### 5.8. Visor de cámara en tiempo real
+
+El botón 📷 junto al título "Imágenes del Ensayo" abre una ventana `CTkToplevel` que muestra la imagen de la cámara en tiempo real (~30 FPS). El flujo es:
+1. Si el visor ya está abierto, solo se enfoca la ventana existente.
+2. Se crea la ventana con un label de 640×480 px como área de visualización.
+3. Se inicia un loop con `after(33ms)` que llama a `obtener_frame()` del driver.
+4. Cada frame se convierte de BGR (OpenCV) a RGB (PIL), se escala para caber en 640×480 manteniendo aspecto, y se muestra como `CTkImage`.
+5. Si no hay cámara conectada, se muestra el texto "No hay cámara conectada".
+6. Al cerrar la ventana (botón X), se detiene el loop y se destruye el `CTkToplevel`.
+
+> **Nota sobre concurrencia:** `obtener_frame()` usa `lock.acquire(blocking=False)`, por lo que si el hilo de captura de fotos del ensayo está usando la cámara, el visor simplemente salta ese frame sin bloquearse.
+
+---
+
+### 5.9. Terminal serie
 **Archivo:** [`diagramas/terminal_serie.puml`](diagramas/terminal_serie.puml)
 
 Describe:
@@ -375,7 +392,7 @@ Describe:
 
 ---
 
-### 5.9. Comunicación serie (diagrama de secuencia)
+### 5.10. Comunicación serie (diagrama de secuencia)
 **Archivo:** [`diagramas/comunicacion_serie.puml`](diagramas/comunicacion_serie.puml)
 
 Diagrama de secuencia que muestra la interacción entre:
@@ -473,6 +490,7 @@ La aplicación utiliza **tres niveles de ejecución:**
 | `monitorear_estado` | 500 ms | Actualizar LEDs de conexión |
 | `_verificar_progreso_ensayo_pc` | 50 ms | Bucle del ensayo (tiempo, fotos) |
 | `_polling_retorno` | Configurable (`PERIODO_MEDICION_BALANZA_RETORNO_MS`) | Polling de peso durante retorno |
+| `_actualizar_visor_camara` | 33 ms (~30 FPS) | Actualizar vista previa de cámara en tiempo real |
 
 ---
 

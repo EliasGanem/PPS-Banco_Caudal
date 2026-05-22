@@ -61,6 +61,25 @@ class CamaraUSB:
         with self._lock:
             return self._conectada
 
+    def obtener_frame(self):
+        """
+        Obtiene un frame de la cámara para vista previa en tiempo real.
+        Utiliza lock no bloqueante para no interferir con la captura de fotos.
+        
+        Returns:
+            numpy.ndarray | None: Frame BGR de OpenCV, o None si no es posible obtenerlo.
+        """
+        if not self._lock.acquire(blocking=False):
+            return None
+        try:
+            if self._conectada and self.captura is not None:
+                ret, frame = self.captura.read()
+                if ret:
+                    return frame
+            return None
+        finally:
+            self._lock.release()
+
     def tomar_foto(self, ruta_guardado: str, callback: Optional[Callable[[bool, str], None]] = None) -> None:
         """
         Toma una foto de forma asíncrona y la guarda en la ruta indicada.
