@@ -778,9 +778,13 @@ class AppPrincipal(ctk.CTk):
 
     def resetear_ensayo(self):
         """Resetea los valores del ensayo para poder iniciar uno nuevo sin calcular resultados."""
-        if self.ensayo_en_curso or self.retorno_en_curso:
-            self._mostrar_advertencia("No se puede resetear mientras hay un ensayo o retorno en curso.")
+        if self.retorno_en_curso:
+            self._mostrar_advertencia("No se puede resetear mientras el retorno está en curso.")
             return
+
+        self.ensayo_en_curso = False
+        self.btn_iniciar.configure(state="normal")
+        self.btn_ini_retorno.configure(state="normal")
 
         self.pendiente_resultados = False
         self.peso_inicial_val = None
