@@ -17,11 +17,11 @@ Para gestionar múltiples eventos sin bloquear la ejecución, el firmware divide
 
 El firmware abstrae el hardware definiendo macros de lógica activa que permiten adaptar fácilmente el código a lógicas positivas o negativas de los periféricos. Las asignaciones de pines actuales son:
 
-- **GPIO 27 (`hab_mux`)**: Habilita el multiplexor RS-232. Se mantiene activo durante las lecturas.
-- **GPIO 26 (`selector_uart`)**: Selecciona el instrumento a leer: `0` conecta la balanza, `1` conecta el reloj.
-- **GPIO 25 (`valvula_recirculacion`)**: Activa la válvula del tanque de recirculación.
-- **GPIO 33 (`selector_tanque`)**: Selector lógico de tanque: `0` para tanque de recirculación, `1` para tanque de pesada.
-- **GPIO 32 (`valvula_pesada`)**: Activa la válvula del tanque de pesada.
+- **GPIO 35 (`hab_mux`)**: Habilita el multiplexor RS-232. Se mantiene activo durante las lecturas.
+- **GPIO 34 (`selector_uart`)**: Selecciona el instrumento a leer: `0` conecta la balanza, `1` conecta el reloj.
+- **GPIO 26 (`valvula_recirculacion`)**: Activa la válvula del tanque de recirculación.
+- **GPIO 27 (`selector_tanque`)**: Selector lógico de tanque: `0` para tanque de recirculación, `1` para tanque de pesada.
+- **GPIO 14 (`valvula_pesada`)**: Activa la válvula del tanque de pesada.
 - **UART0**: Se utiliza para la comunicación USB a la PC usando el conversor UART-USB de la placa base (Pines 1 y 3).
 - **UART2**: Se utiliza para la comunicación con los instrumentos (Pines 16 y 17).
 
