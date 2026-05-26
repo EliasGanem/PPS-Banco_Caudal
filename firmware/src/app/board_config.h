@@ -18,11 +18,11 @@
 /**
  * @brief Asignación de pines del hardware
  */
-#define PIN_HAB_MUX 27
-#define PIN_SELECTOR_UART 26
-#define PIN_VALV_RECIRC 25
-#define PIN_SEL_TANQUE 33
-#define PIN_VALV_PESADA 32
+#define PIN_HAB_MUX 35
+#define PIN_SELECTOR_UART 34
+#define PIN_VALV_RECIRC 26
+#define PIN_SEL_TANQUE 27
+#define PIN_VALV_PESADA 14
 
 /**
  * @brief Configuración de la lógica activa para cada terminal
