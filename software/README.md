@@ -50,8 +50,8 @@ Si ya se completó la instalación (ya sea con el instalador automático o de fo
 Si sos diseñador de hardware y necesitás modificar los parámetros de la placa para que la aplicación autodetecte el puerto automáticamente, abrí el archivo `main.py` y modificá las constantes ubicadas en la función principal:
 
 ```python
-VID_DEFECTO = "2341"  # Modificar por el Vendor ID de tu placa
-PID_DEFECTO = "0043"  # Modificar por el Product ID de tu placa
+VID_DEFECTO = "1A86"  # Modificar por el Vendor ID de tu placa
+PID_DEFECTO = "55D4"  # Modificar por el Product ID de tu placa
 ```
 
 ---
